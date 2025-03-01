@@ -44,14 +44,12 @@ class Stack:
         self.pieces = []
         
     def place_piece(self, cell, player):
-        print("bbbbbbbbbbbb")
         self.stack[player] -= 1
         piece = Piece(player)
         self.pieces.append(piece)
         piece.insert_piece(cell)
                 
     def draw_available(self, screen, player, turn):
-        print(self.highlighted)
         x = 250 + 300 * player
         y = 600
         

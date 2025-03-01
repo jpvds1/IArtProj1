@@ -21,6 +21,9 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:  # Detect key press
+            if event.key == pygame.K_ESCAPE:
+                running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:  # Detect mouse click
             x, y = pygame.mouse.get_pos()
             turn = handle_click(x, y, turn)
