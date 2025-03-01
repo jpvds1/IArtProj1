@@ -21,7 +21,7 @@ class Piece:
     def draw(self, screen):
         if self.cell:
             x, y = self.cell.pos  # Get the cell's pixel position
-            pygame.draw.circle(screen, COLORS[self.player], (x, y), 20)  # Draw piece
+            pygame.draw.circle(screen, COLORS[self.player], (x, y), HEX_RADIUS * 2 // 3)  # Draw piece
             return True
         return False
                 
@@ -33,9 +33,9 @@ class Piece:
             print("Cell already occupied.")
 
 def draw_available(screen, available, player):
-    x = 200 + 300 * player
+    x = 250 + 300 * player
     y = 600
-    pygame.draw.circle(screen, COLORS[player], (x, y), 20)
+    pygame.draw.circle(screen, COLORS[player], (x, y), HEX_RADIUS * 2 // 3)
     
     # Draw the id in the center (only for development purposes)
     font = pygame.font.Font(None, 24)
