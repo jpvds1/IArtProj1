@@ -1,6 +1,26 @@
 from pieces import *
 from board import *
 import math
+from enum import Enum
+
+PENDING_PIECE = None
+
+class States(Enum):
+    DEFAULT = 0
+    PENDING_MOVE = 1
+    PENDING_PLACE = 2
+
+STATE = States.DEFAULT
+
+def move_piece(cell, piece):
+    global PENDING_PIECE, STATE
+    piece.highlighted = True
+    PENDING_PIECE = piece
+    STATE = States.PENDING_MOVE
+    return
+
+def validate_move():
+    return True
 
 def get_selected(x, y):
     
@@ -19,6 +39,8 @@ def get_selected(x, y):
     return None
 
 def handle_click(x, y):
+    global PENDING_PIECE, STATE
+    
     selected = get_selected(x, y)
     
     if selected is None:
@@ -31,6 +53,14 @@ def handle_click(x, y):
         print("player 1")
         
     else:
+        if selected.piece != None and STATE == States.DEFAULT:
+            move_piece(selected, selected.piece)
+        elif selected.piece == None and STATE == States.PENDING_MOVE:
+            if validate_move():
+                PENDING_PIECE.move_to(selected)
+                PENDING_PIECE.highlighted = False
+                PENDING_PIECE = None
+                STATE = States.DEFAULT
         print(selected.id)
     
     

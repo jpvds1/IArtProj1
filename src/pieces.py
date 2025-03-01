@@ -9,6 +9,7 @@ class Piece:
     def __init__(self, player):
         self.player = player
         self.cell = None  # The Cell object this piece belongs to
+        self.highlighted = False # Flag to check if the piece was selected
 
     def move_to(self, new_cell):
         if new_cell.piece is None:  # Check if the cell is empty
@@ -22,6 +23,11 @@ class Piece:
         if self.cell:
             x, y = self.cell.pos  # Get the cell's pixel position
             pygame.draw.circle(screen, COLORS[self.player], (x, y), HEX_RADIUS * 2 // 3)  # Draw piece
+            if self.highlighted:
+                pygame.draw.circle(screen, (100, 100, 100), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw highlighted outline
+            else:
+                pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw outline
+            
             return True
         return False
                 
@@ -36,6 +42,7 @@ def draw_available(screen, available, player):
     x = 250 + 300 * player
     y = 600
     pygame.draw.circle(screen, COLORS[player], (x, y), HEX_RADIUS * 2 // 3)
+    pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
     
     # Draw the id in the center (only for development purposes)
     font = pygame.font.Font(None, 24)
