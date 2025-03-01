@@ -1,9 +1,6 @@
 import pygame
 import math
 
-# Initialize Pygame
-pygame.init()
-
 # Screen settings
 WIDTH, HEIGHT = 800, 800
 SIZE = 5 # Size of the board
@@ -103,20 +100,3 @@ def draw_graph():
             col_pos[1] += hex_radius * math.sqrt(3) / 2
         row_pos[0] -= hex_radius * 1.5
         row_pos[1] += hex_radius * math.sqrt(3) / 2
-    
-
-draw_graph()
-
-# Game loop
-running = True
-while running:
-    screen.fill(BG_COLOR)
-    draw_graph()
-    
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-    pygame.display.flip()
-
-pygame.quit()
