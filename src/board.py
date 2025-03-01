@@ -4,6 +4,7 @@ import math
 # Screen settings
 WIDTH, HEIGHT = 800, 800
 SIZE = 5 # Size of the board
+HEX_RADIUS = (WIDTH - 200) // (SIZE + (SIZE - 1 // 2)) / 2
 BG_COLOR = (255, 255, 255) # Background Color
 NEUTRAL, WHITE, BLUE = 0, 1, 2 # Types of cells
 COLORS = [(255, 255, 0), (255, 255, 255), (173, 216, 230)] # Colors of the cells
@@ -19,6 +20,7 @@ class Cell:
         self.id = id
         self.type = None # Type of cell (neutral, white, blue)
         self.piece = None  # None means empty cell
+        self.pos = None
         self.neighbors = {dir: None for dir in DIRECTIONS} # None means no neighbor
 
     def set_neighbor(self, direction, node):
@@ -60,6 +62,19 @@ def create_graph(size=5):
     cells[size * size - size].type = NEUTRAL
     cells[size * size - 1].type = NEUTRAL
     cells[size * size // 2].type = NEUTRAL
+    
+    
+    # Set the positions of the cells
+    row_pos = [400, 200]
+    
+    for i in range(SIZE):
+        col_pos = row_pos.copy()
+        for d in range(SIZE):
+            cells[i * size + d].pos = (col_pos[0], col_pos[1])
+            col_pos[0] += HEX_RADIUS * 1.5
+            col_pos[1] += HEX_RADIUS * math.sqrt(3) / 2
+        row_pos[0] -= HEX_RADIUS * 1.5
+        row_pos[1] += HEX_RADIUS * math.sqrt(3) / 2
 
     return cells
             
@@ -67,12 +82,12 @@ graph = create_graph(SIZE)
 
 
 # Draws an hexagon
-def draw_hexagon(x, y, color, hex_radius, hex_id):
+def draw_hexagon(x, y, color, HEX_RADIUS, hex_id):
     points = []
     for i in range(6):
         angle = math.pi / 3 * i
-        px = x + hex_radius * math.cos(angle)
-        py = y + hex_radius * math.sin(angle)
+        px = x + HEX_RADIUS * math.cos(angle)
+        py = y + HEX_RADIUS * math.sin(angle)
         points.append((px, py))
     
     # Draw an hexagon with a black outline
@@ -89,14 +104,8 @@ def draw_hexagon(x, y, color, hex_radius, hex_id):
 
 # Draw the board
 def draw_graph():
-    hex_radius = (WIDTH - 200) // (SIZE + (SIZE - 1 // 2)) / 2
-    row_pos = [400, 200]
     
-    for i in range(SIZE):
-        col_pos = row_pos.copy()
-        for d in range(SIZE):
-            draw_hexagon(col_pos[0], col_pos[1], COLORS[graph[i * SIZE + d].type], hex_radius, graph[i * SIZE + d].id)
-            col_pos[0] += hex_radius * 1.5
-            col_pos[1] += hex_radius * math.sqrt(3) / 2
-        row_pos[0] -= hex_radius * 1.5
-        row_pos[1] += hex_radius * math.sqrt(3) / 2
+    for i in range(SIZE * SIZE):
+        cell = graph[i]
+        x, y = cell.pos
+        draw_hexagon(x, y, COLORS[cell.type], HEX_RADIUS, cell.id)
