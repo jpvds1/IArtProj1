@@ -12,7 +12,7 @@ class States(Enum):
 
 STATE = States.DEFAULT
 
-def move_piece(cell, piece):
+def setup_move(cell, piece):
     global PENDING_PIECE, STATE
     piece.highlighted = True
     PENDING_PIECE = piece
@@ -38,7 +38,7 @@ def get_selected(x, y):
         
     return None
 
-def handle_click(x, y):
+def handle_click(x, y, turn):
     global PENDING_PIECE, STATE
     
     selected = get_selected(x, y)
@@ -53,14 +53,18 @@ def handle_click(x, y):
         print("player 1")
         
     else:
-        if selected.piece != None and STATE == States.DEFAULT:
-            move_piece(selected, selected.piece)
-        elif selected.piece == None and STATE == States.PENDING_MOVE:
+        piece = selected.piece
+        if piece != None and STATE == States.DEFAULT and piece.player == turn:
+            setup_move(selected, piece)
+        elif piece == None and STATE == States.PENDING_MOVE:
             if validate_move():
                 PENDING_PIECE.move_to(selected)
                 PENDING_PIECE.highlighted = False
                 PENDING_PIECE = None
                 STATE = States.DEFAULT
+                turn = 1 - turn
         print(selected.id)
+        
+    return turn
     
     

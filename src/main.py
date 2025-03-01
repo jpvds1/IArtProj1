@@ -8,6 +8,8 @@ pygame.init()
 
 # Game loop
 running = True
+turn = 0
+
 while running:
     screen.fill(BG_COLOR)
     draw_graph()
@@ -18,7 +20,7 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:  # Detect mouse click
             x, y = pygame.mouse.get_pos()
-            handle_click(x, y)
+            turn = handle_click(x, y, turn)
         
     pygame.display.flip()
 
