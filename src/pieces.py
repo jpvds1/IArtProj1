@@ -22,7 +22,9 @@ class Piece:
         if self.cell:
             x, y = self.cell.pos  # Get the cell's pixel position
             pygame.draw.circle(screen, COLORS[self.player], (x, y), 20)  # Draw piece
-            
+            return True
+        return False
+                
     def insert_piece(self, cell):
         if cell.piece is None:
             cell.piece = self
@@ -30,14 +32,37 @@ class Piece:
         else:
             print("Cell already occupied.")
 
+def draw_available(screen, available, player):
+    x = 200 + 300 * player
+    y = 600
+    pygame.draw.circle(screen, COLORS[player], (x, y), 20)
+    
+    # Draw the id in the center (only for development purposes)
+    font = pygame.font.Font(None, 24)
+    text_surface = font.render("x" + str(available), True, (0, 0, 0))
+    text_rect = text_surface.get_rect(center=(x, y))
+    
+    screen.blit(text_surface, text_rect)
+
 def draw_pieces(screen):
+    available_pieces = [6, 6]
     for piece in PIECES:
-        piece.draw(screen)
+        if piece.draw(screen):
+            available_pieces[piece.player] -= 1
+            
+    draw_available(screen, available_pieces[0], 0)
+    draw_available(screen, available_pieces[1], 1)
+            
+    
+            
+    
+
+for i in range(6):
+    piece = Piece(0)
+    PIECES.append(piece)
+    piece = Piece(1)
+    PIECES.append(piece)
 
 
-piece = Piece(0)
-piece.insert_piece(graph[3])
-PIECES.append(piece)
-piece = Piece(1)
-piece.insert_piece(graph[6])
-PIECES.append(piece)
+PIECES[2].insert_piece(graph[16])
+PIECES[7].insert_piece(graph[6])
