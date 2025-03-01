@@ -3,8 +3,10 @@ from board import *
 import math
 from enum import Enum
 
+# This variable will be used to hold the selected piece when moving
 PENDING_PIECE = None
 
+# Enum with possible states
 class States(Enum):
     DEFAULT = 0
     PENDING_MOVE = 1
@@ -12,6 +14,7 @@ class States(Enum):
 
 STATE = States.DEFAULT
 
+# Change the necessary values to setup a move
 def setup_move(piece):
     global PENDING_PIECE, STATE
     piece.highlighted = True
@@ -19,14 +22,20 @@ def setup_move(piece):
     STATE = States.PENDING_MOVE
     return
 
+# Change the necessary value to setup placing a piece
 def setup_place():
     global STATE
     stack.highlighted = True
     STATE = States.PENDING_PLACE
 
+# Validate the move made (WIP)
 def validate_move():
     return True
 
+# Get the selected object
+# Returns 0 or 1 when the stack of a player is selected
+# Returns the cell when a cell is selected
+# Returns None when nothing was selected
 def get_selected(x, y):
     
     if math.sqrt((x - 250) ** 2 + (y - 600) ** 2) < HEX_RADIUS * 2 // 3:
@@ -43,6 +52,7 @@ def get_selected(x, y):
         
     return None
 
+# Handle what happens when a click occurs
 def handle_click(x, y, turn):
     global PENDING_PIECE, STATE
     

@@ -18,6 +18,7 @@ class Piece:
         else:
             print("Invalid move! Cell is already occupied.")
 
+    # Draw a piece (highlighted when selected to be moved)
     def draw(self, screen):
         if self.cell:
             x, y = self.cell.pos  # Get the cell's pixel position
@@ -49,6 +50,7 @@ class Stack:
         self.pieces.append(piece)
         piece.insert_piece(cell)
                 
+    # Draw a stack of available pieces for a player (highlighted when selected to place)
     def draw_available(self, screen, player, turn):
         x = 250 + 300 * player
         y = 600
@@ -65,7 +67,7 @@ class Stack:
         text_rect = text_surface.get_rect(center=(x, y))
         
         screen.blit(text_surface, text_rect)
-
+        
     def draw_stack(self, screen, turn):
         self.draw_available(screen, 0, turn)
         self.draw_available(screen, 1, turn)
@@ -80,6 +82,7 @@ class Stack:
         self.pieces[0].insert_piece(graph[16])
         self.pieces[1].insert_piece(graph[6])
         
+    # Draw all pieces and stacks
     def draw_stack_and_pieces(self, screen, turn):
         for piece in self.pieces:
             piece.draw(screen)
