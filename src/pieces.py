@@ -3,7 +3,6 @@ import math
 from board import *
 
 COLORS = [(255, 0, 0), (0, 255, 0)]
-PIECES = []
 
 class Piece:
     def __init__(self, player):
@@ -38,38 +37,46 @@ class Piece:
         else:
             print("Cell already occupied.")
 
-def draw_available(screen, available, player):
-    x = 250 + 300 * player
-    y = 600
-    pygame.draw.circle(screen, COLORS[player], (x, y), HEX_RADIUS * 2 // 3)
-    pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
-    
-    # Draw the id in the center (only for development purposes)
-    font = pygame.font.Font(None, 24)
-    text_surface = font.render("x" + str(available), True, (0, 0, 0))
-    text_rect = text_surface.get_rect(center=(x, y))
-    
-    screen.blit(text_surface, text_rect)
+class Stack:
+    def __init__(self):
+        self.stack = [6, 6]
+        self.pieces = []
+        
+    def remove(self, player):
+        if self.stack[player] > 0:
+            self.stack[player] -= 1
+                
+    def draw_available(self, screen, player):
+        x = 250 + 300 * player
+        y = 600
+        
+        pygame.draw.circle(screen, COLORS[player], (x, y), HEX_RADIUS * 2 // 3)
+        pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
+        
+        # Write the number of pieces left
+        font = pygame.font.Font(None, 24)
+        text_surface = font.render("x" + str(self.stack[player]), True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=(x, y))
+        
+        screen.blit(text_surface, text_rect)
 
-def draw_pieces(screen):
-    available_pieces = [6, 6]
-    for piece in PIECES:
-        if piece.draw(screen):
-            available_pieces[piece.player] -= 1
+    def draw_stack(self, screen):
+        self.draw_available(screen, 0)
+        self.draw_available(screen, 1)
+        
+    # only for development
+    def init_pieces(self):
+        piece = Piece(0)
+        self.pieces.append(piece)
+        piece = Piece(1)
+        self.pieces.append(piece)
             
-    draw_available(screen, available_pieces[0], 0)
-    draw_available(screen, available_pieces[1], 1)
+        self.pieces[0].insert_piece(graph[16])
+        self.pieces[1].insert_piece(graph[6])
+        
+    def draw_stack_and_pieces(self, screen):
+        for piece in self.pieces:
+            piece.draw(screen)
+        self.draw_stack(screen)
             
-    
-            
-    
-
-for i in range(6):
-    piece = Piece(0)
-    PIECES.append(piece)
-    piece = Piece(1)
-    PIECES.append(piece)
-
-
-PIECES[2].insert_piece(graph[16])
-PIECES[7].insert_piece(graph[6])
+stack = Stack()

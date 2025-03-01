@@ -10,10 +10,13 @@ pygame.init()
 running = True
 turn = 0
 
+# only for development
+stack.init_pieces()
+
 while running:
     screen.fill(BG_COLOR)
     draw_graph()
-    draw_pieces(screen)
+    stack.draw_stack_and_pieces(screen)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

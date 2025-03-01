@@ -12,7 +12,7 @@ class States(Enum):
 
 STATE = States.DEFAULT
 
-def setup_move(cell, piece):
+def setup_move(piece):
     global PENDING_PIECE, STATE
     piece.highlighted = True
     PENDING_PIECE = piece
@@ -55,7 +55,7 @@ def handle_click(x, y, turn):
     else:
         piece = selected.piece
         if piece != None and STATE == States.DEFAULT and piece.player == turn:
-            setup_move(selected, piece)
+            setup_move(piece)
         elif piece == None and STATE == States.PENDING_MOVE:
             if validate_move():
                 PENDING_PIECE.move_to(selected)
