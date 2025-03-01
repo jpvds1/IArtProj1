@@ -7,7 +7,7 @@ SIZE = 5 # Size of the board
 HEX_RADIUS = (WIDTH - 200) // (SIZE + (SIZE - 1 // 2)) / 2
 BG_COLOR = (255, 255, 255) # Background Color
 NEUTRAL, WHITE, BLUE = 0, 1, 2 # Types of cells
-COLORS = [(255, 255, 0), (255, 255, 255), (173, 216, 230)] # Colors of the cells
+COLORS = [(255, 255, 255), (255, 255, 255), (173, 216, 230)] # Colors of the cells
 DIRECTIONS = ["UP", "UP_RIGHT", "DOWN_RIGHT", "DOWN", "DOWN_LEFT", "UP_LEFT"] # Possible directions of movement
 
 # Screen with title
@@ -82,7 +82,7 @@ graph = create_graph(SIZE)
 
 
 # Draws an hexagon
-def draw_hexagon(x, y, color, HEX_RADIUS, hex_id):
+def draw_hexagon(x, y, type, HEX_RADIUS, hex_id):
     points = []
     for i in range(6):
         angle = math.pi / 3 * i
@@ -91,15 +91,15 @@ def draw_hexagon(x, y, color, HEX_RADIUS, hex_id):
         points.append((px, py))
     
     # Draw an hexagon with a black outline
-    pygame.draw.polygon(screen, color, points, 0)
+    pygame.draw.polygon(screen, COLORS[type], points, 0)
     pygame.draw.polygon(screen, (0, 0, 0), points, 2)
     
-    # Draw the id in the center (only for development purposes)
-    font = pygame.font.Font(None, 24)
-    text_surface = font.render(str(hex_id), True, (0, 0, 0))
-    text_rect = text_surface.get_rect(center=(x, y))
-    
-    screen.blit(text_surface, text_rect)
+    if type == NEUTRAL:
+        font = pygame.font.Font(None, 24)
+        text_surface = font.render("N", True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=(x, y))
+
+        screen.blit(text_surface, text_rect)
 
 
 # Draw the board
@@ -108,4 +108,4 @@ def draw_graph():
     for i in range(SIZE * SIZE):
         cell = graph[i]
         x, y = cell.pos
-        draw_hexagon(x, y, COLORS[cell.type], HEX_RADIUS, cell.id)
+        draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.id)

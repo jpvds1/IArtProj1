@@ -23,7 +23,7 @@ class Piece:
             x, y = self.cell.pos  # Get the cell's pixel position
             pygame.draw.circle(screen, COLORS[self.player], (x, y), HEX_RADIUS * 2 // 3)  # Draw piece
             if self.highlighted:
-                pygame.draw.circle(screen, (100, 100, 100), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw highlighted outline
+                pygame.draw.circle(screen, (255, 255, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw highlighted outline
             else:
                 pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw outline
             
@@ -40,18 +40,26 @@ class Piece:
 class Stack:
     def __init__(self):
         self.stack = [6, 6]
+        self.highlighted = False
         self.pieces = []
         
-    def remove(self, player):
-        if self.stack[player] > 0:
-            self.stack[player] -= 1
+    def place_piece(self, cell, player):
+        print("bbbbbbbbbbbb")
+        self.stack[player] -= 1
+        piece = Piece(player)
+        self.pieces.append(piece)
+        piece.insert_piece(cell)
                 
-    def draw_available(self, screen, player):
+    def draw_available(self, screen, player, turn):
+        print(self.highlighted)
         x = 250 + 300 * player
         y = 600
         
         pygame.draw.circle(screen, COLORS[player], (x, y), HEX_RADIUS * 2 // 3)
-        pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
+        if self.highlighted and player == turn:
+            pygame.draw.circle(screen, (255, 255, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
+        else:
+            pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)
         
         # Write the number of pieces left
         font = pygame.font.Font(None, 24)
@@ -60,9 +68,9 @@ class Stack:
         
         screen.blit(text_surface, text_rect)
 
-    def draw_stack(self, screen):
-        self.draw_available(screen, 0)
-        self.draw_available(screen, 1)
+    def draw_stack(self, screen, turn):
+        self.draw_available(screen, 0, turn)
+        self.draw_available(screen, 1, turn)
         
     # only for development
     def init_pieces(self):
@@ -74,9 +82,9 @@ class Stack:
         self.pieces[0].insert_piece(graph[16])
         self.pieces[1].insert_piece(graph[6])
         
-    def draw_stack_and_pieces(self, screen):
+    def draw_stack_and_pieces(self, screen, turn):
         for piece in self.pieces:
             piece.draw(screen)
-        self.draw_stack(screen)
+        self.draw_stack(screen, turn)
             
 stack = Stack()

@@ -19,6 +19,11 @@ def setup_move(piece):
     STATE = States.PENDING_MOVE
     return
 
+def setup_place():
+    global STATE
+    stack.highlighted = True
+    STATE = States.PENDING_PLACE
+
 def validate_move():
     return True
 
@@ -47,10 +52,12 @@ def handle_click(x, y, turn):
         print("Nothing")
     
     elif selected == 0:
-        print("player 0")
+        if turn == 0 and STATE == States.DEFAULT:
+            setup_place()
         
     elif selected == 1:
-        print("player 1")
+        if turn == 1 and STATE == States.DEFAULT:
+            setup_place()
         
     else:
         piece = selected.piece
@@ -63,7 +70,11 @@ def handle_click(x, y, turn):
                 PENDING_PIECE = None
                 STATE = States.DEFAULT
                 turn = 1 - turn
-        print(selected.id)
+        elif piece == None and STATE == States.PENDING_PLACE:
+            stack.place_piece(selected, turn)
+            stack.highlighted = False
+            STATE = States.DEFAULT
+            turn = 1 - turn
         
     return turn
     
