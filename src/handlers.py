@@ -2,9 +2,11 @@ from pieces import *
 from board import *
 import math
 from enum import Enum
+from typing import List
 
 # This variable will be used to hold the selected piece when moving
 PENDING_PIECE = None
+VALID_MOVES = None
 
 # Enum with possible states
 class States(Enum):
@@ -13,6 +15,55 @@ class States(Enum):
     PENDING_PLACE = 2
 
 STATE = States.DEFAULT
+
+def validate_direction(direction, current_cell: Cell, piece: Piece, color_switched):
+    possible_moves = []
+    next_cell: Cell = current_cell.neighbors[direction]
+    print("next cell: ", next_cell)
+    if next_cell == None:
+        return possible_moves
+    
+    if next_cell.piece != None:
+        return possible_moves
+        
+    cell_player_color = (piece.player == 0 and next_cell.type == BLUE) or (piece.player == 1 and next_cell.type == WHITE)
+
+        
+    if current_cell.type == next_cell.type:
+        possible_moves.append(next_cell)
+        if cell_player_color:
+            possible_moves.extend(validate_direction(direction, next_cell, piece, color_switched))   
+    elif color_switched == False:
+        possible_moves.append(next_cell)
+        if cell_player_color:    
+            possible_moves.extend(validate_direction(direction, next_cell, piece, True))
+            
+            
+    return possible_moves
+'''  
+if curr.type != next.type and next.type != piece.player:
+    break
+if curr.type == next,type and next.type == piece.player:
+    recursive_Call
+if curr.type == next.type and next.type != piece.player:
+    break
+if curr.type != next.type and next.type == piece.player and color switch = False:
+    color_switch = True
+    recursive call
+'''
+
+# Fill a list of possible moves and highlight the possible cells
+def valid_moves(piece: Piece):
+    global VALID_MOVES
+    VALID_MOVES = []
+    current_cell = piece.cell
+    for direction in DIRECTIONS:
+        VALID_MOVES.extend(validate_direction(direction, current_cell, piece, False))
+        
+    print("Valid moves: ", VALID_MOVES)
+    for cell in VALID_MOVES:
+        cell.highlighted = True
+        
 
 # Change the necessary values to setup a move
 def setup_move(piece):
@@ -73,11 +124,14 @@ def handle_click(x, y, turn):
         piece = selected.piece
         if piece != None and STATE == States.DEFAULT and piece.player == turn:
             setup_move(piece)
+            valid_moves(piece)
         elif piece == None and STATE == States.PENDING_MOVE:
             if validate_move():
                 PENDING_PIECE.move_to(selected)
                 PENDING_PIECE.highlighted = False
                 PENDING_PIECE = None
+                for cell in VALID_MOVES:
+                    cell.highlighted = False
                 STATE = States.DEFAULT
                 turn = 1 - turn
         elif piece == None and STATE == States.PENDING_PLACE:

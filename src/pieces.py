@@ -7,7 +7,7 @@ COLORS = [(255, 0, 0), (0, 255, 0)]
 class Piece:
     def __init__(self, player):
         self.player = player
-        self.cell = None  # The Cell object this piece belongs to
+        self.cell: Cell = None  # The Cell object this piece belongs to
         self.highlighted = False # Flag to check if the piece was selected
 
     def move_to(self, new_cell):

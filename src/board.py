@@ -21,6 +21,7 @@ class Cell:
         self.type = None # Type of cell (neutral, white, blue)
         self.piece = None  # None means empty cell
         self.pos = None
+        self.highlighted = False
         self.neighbors = {dir: None for dir in DIRECTIONS} # None means no neighbor
 
     def set_neighbor(self, direction, node):
@@ -82,7 +83,7 @@ graph = create_graph(SIZE)
 
 
 # Draws an hexagon
-def draw_hexagon(x, y, type, HEX_RADIUS, hex_id):
+def draw_hexagon(x, y, type, HEX_RADIUS, highlighted):
     points = []
     for i in range(6):
         angle = math.pi / 3 * i
@@ -92,7 +93,10 @@ def draw_hexagon(x, y, type, HEX_RADIUS, hex_id):
     
     # Draw an hexagon with a black outline
     pygame.draw.polygon(screen, COLORS[type], points, 0)
-    pygame.draw.polygon(screen, (0, 0, 0), points, 2)
+    if highlighted:
+        pygame.draw.polygon(screen, (0, 255, 255), points, 2)
+    else:
+        pygame.draw.polygon(screen, (0, 0, 0), points, 2)
     
     if type == NEUTRAL:
         font = pygame.font.Font(None, 24)
@@ -108,4 +112,4 @@ def draw_graph():
     for i in range(SIZE * SIZE):
         cell = graph[i]
         x, y = cell.pos
-        draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.id)
+        draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
