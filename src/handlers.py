@@ -16,6 +16,8 @@ class States(Enum):
 
 STATE = States.DEFAULT
 
+# Recursive function, adds valid cells in a single direction until a move in impossible
+# (color_switched) if the sequence of cells has already changed color
 def validate_direction(direction, current_cell: Cell, piece: Piece, color_switched):
     possible_moves = []
     next_cell: Cell = current_cell.neighbors[direction]
@@ -26,6 +28,7 @@ def validate_direction(direction, current_cell: Cell, piece: Piece, color_switch
     if next_cell.piece != None:
         return possible_moves
         
+    # See if the color of the cell is equal to the color of the player
     cell_player_color = (piece.player == 0 and next_cell.type == BLUE) or (piece.player == 1 and next_cell.type == WHITE)
 
         
@@ -67,11 +70,16 @@ def setup_place():
     stack.highlighted = True
     STATE = States.PENDING_PLACE
 
-# Validate the move made (WIP)
-def validate_move(cell: Cell):
-    if cell in VALID_MOVES:
-        return True
-    return False
+# Move the piece and reset values
+def make_move(cell: Cell):
+    global PENDING_PIECE, STATE, VALID_MOVES
+    PENDING_PIECE.move_to(cell)
+    PENDING_PIECE.highlighted = False
+    PENDING_PIECE = None
+    for cell in VALID_MOVES:
+        cell.highlighted = False
+    STATE = States.DEFAULT
+
 
 # Get the selected object
 # Returns 0 or 1 when the stack of a player is selected
@@ -95,7 +103,7 @@ def get_selected(x, y):
 
 # Handle what happens when a click occurs
 def handle_click(x, y, turn):
-    global PENDING_PIECE, STATE
+    global PENDING_PIECE, STATE, VALID_MOVES
     
     selected = get_selected(x, y)
     
@@ -116,13 +124,8 @@ def handle_click(x, y, turn):
             setup_move(piece)
             valid_moves(piece)
         elif piece == None and STATE == States.PENDING_MOVE:
-            if validate_move(selected):
-                PENDING_PIECE.move_to(selected)
-                PENDING_PIECE.highlighted = False
-                PENDING_PIECE = None
-                for cell in VALID_MOVES:
-                    cell.highlighted = False
-                STATE = States.DEFAULT
+            if selected in VALID_MOVES:
+                make_move(selected)
                 turn = 1 - turn
             else:
                 print("invalid move")
@@ -133,5 +136,3 @@ def handle_click(x, y, turn):
             turn = 1 - turn
         
     return turn
-    
-    
