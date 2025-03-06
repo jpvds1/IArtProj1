@@ -19,7 +19,7 @@ STATE = States.DEFAULT
 def validate_direction(direction, current_cell: Cell, piece: Piece, color_switched):
     possible_moves = []
     next_cell: Cell = current_cell.neighbors[direction]
-    print("next cell: ", next_cell)
+
     if next_cell == None:
         return possible_moves
     
@@ -40,17 +40,6 @@ def validate_direction(direction, current_cell: Cell, piece: Piece, color_switch
             
             
     return possible_moves
-'''  
-if curr.type != next.type and next.type != piece.player:
-    break
-if curr.type == next,type and next.type == piece.player:
-    recursive_Call
-if curr.type == next.type and next.type != piece.player:
-    break
-if curr.type != next.type and next.type == piece.player and color switch = False:
-    color_switch = True
-    recursive call
-'''
 
 # Fill a list of possible moves and highlight the possible cells
 def valid_moves(piece: Piece):
@@ -60,7 +49,6 @@ def valid_moves(piece: Piece):
     for direction in DIRECTIONS:
         VALID_MOVES.extend(validate_direction(direction, current_cell, piece, False))
         
-    print("Valid moves: ", VALID_MOVES)
     for cell in VALID_MOVES:
         cell.highlighted = True
         
@@ -80,8 +68,10 @@ def setup_place():
     STATE = States.PENDING_PLACE
 
 # Validate the move made (WIP)
-def validate_move():
-    return True
+def validate_move(cell: Cell):
+    if cell in VALID_MOVES:
+        return True
+    return False
 
 # Get the selected object
 # Returns 0 or 1 when the stack of a player is selected
@@ -126,7 +116,7 @@ def handle_click(x, y, turn):
             setup_move(piece)
             valid_moves(piece)
         elif piece == None and STATE == States.PENDING_MOVE:
-            if validate_move():
+            if validate_move(selected):
                 PENDING_PIECE.move_to(selected)
                 PENDING_PIECE.highlighted = False
                 PENDING_PIECE = None
@@ -134,6 +124,8 @@ def handle_click(x, y, turn):
                     cell.highlighted = False
                 STATE = States.DEFAULT
                 turn = 1 - turn
+            else:
+                print("invalid move")
         elif piece == None and STATE == States.PENDING_PLACE:
             stack.place_piece(selected, turn)
             stack.highlighted = False

@@ -106,10 +106,15 @@ def draw_hexagon(x, y, type, HEX_RADIUS, highlighted):
         screen.blit(text_surface, text_rect)
 
 
-# Draw the board
+# Draw the board (highlighted cells last)
 def draw_graph():
     
-    for i in range(SIZE * SIZE):
-        cell = graph[i]
-        x, y = cell.pos
-        draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
+    for cell in graph:
+        if cell.highlighted == False:
+            x, y = cell.pos
+            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
+            
+    for cell in graph:
+        if cell.highlighted == True:
+            x, y = cell.pos
+            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
