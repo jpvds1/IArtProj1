@@ -2,9 +2,17 @@ import pygame
 from board import *
 from pieces import *
 from handlers import *
+from menu import *
 
 # Initialize Pygame
 pygame.init()
+
+start_game = main_menu()
+
+# Quit game
+if not start_game:
+    pygame.quit()
+    quit()
 
 # Game loop
 running = True
