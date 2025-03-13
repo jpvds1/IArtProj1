@@ -2,12 +2,12 @@ from pieces import *
 from board import *
 import math
 from enum import Enum
-from typing import List
 
 # This variable will be used to hold the selected piece when moving
 PENDING_PIECE = None
 VALID_MOVES = None
 FIRST_MOVE = None
+WINNER = None
 
 # Enum with possible states
 class States(Enum):
@@ -42,6 +42,7 @@ def check_row(dir1, dir2, cell: Cell):
 # 1 : win
 # 2 : loss
 def check_conditions(cell: Cell):
+    global WINNER
     cells_in_a_row = 1
     
     cells_in_a_row = max(cells_in_a_row, check_row("UP", "DOWN", cell))
@@ -49,11 +50,13 @@ def check_conditions(cell: Cell):
     cells_in_a_row = max(cells_in_a_row, check_row("UP_LEFT", "DOWN_RIGHT", cell))
         
     if cells_in_a_row > 4:
-        return 2
+        WINNER = abs(cell.piece.player - 1)
+        return True
     elif cells_in_a_row == 4:
-        return 1
+        WINNER = cell.piece.player
+        return True
     else:
-        return 0
+        return False
         
 
 # Check if a flip occurs after a move
@@ -160,7 +163,7 @@ def get_selected(x, y):
 
 # Handle what happens when a click occurs
 def handle_click(x, y, turn):
-    global PENDING_PIECE, STATE, VALID_MOVES, FIRST_MOVE
+    global PENDING_PIECE, STATE, VALID_MOVES, FIRST_MOVE, WINNER
     
     selected = get_selected(x, y)
     
@@ -184,9 +187,10 @@ def handle_click(x, y, turn):
             if selected in VALID_MOVES:
                 make_move(selected)
                 check_flip(selected)
-                condition = check_conditions(selected)
-                print(condition)
-                turn = 1 - turn
+                if check_conditions(selected):
+                    turn = WINNER + 2
+                else:
+                    turn = 1 - turn
             else:
                 print("invalid move")
         elif piece == None and STATE == States.PENDING_PLACE:

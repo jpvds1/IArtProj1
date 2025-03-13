@@ -105,3 +105,11 @@ def quit_game():
 # Only while not all modes are implemented
 def not_implemented():
     print("This mode is not implemented yet!")
+    
+    
+# Function that displays the menu after the game
+def end_game(winner):
+    screen.fill(BG_COLOR)
+    text = FONT.render("Player " + str(winner) + " won!", True, BLACK)
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 400))
+    pygame.display.flip()
