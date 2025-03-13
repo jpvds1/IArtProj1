@@ -7,7 +7,7 @@ COLORS = [(255, 0, 0), (0, 255, 0)]
 class Piece:
     def __init__(self, player):
         self.player = player
-        self.cell: Cell = None  # The Cell object this piece belongs to
+        self.cell : Cell = None  # The Cell object this piece belongs to
         self.highlighted = False # Flag to check if the piece was selected
 
     def move_to(self, new_cell):
@@ -37,6 +37,9 @@ class Piece:
             self.cell = cell
         else:
             print("Cell already occupied.")
+            
+    def flip(self):
+        self.player = abs(self.player - 1)
 
 class Stack:
     def __init__(self):

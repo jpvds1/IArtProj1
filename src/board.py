@@ -1,6 +1,7 @@
 import pygame
 import math
 
+
 # Screen settings
 WIDTH, HEIGHT = 800, 800
 SIZE = 5 # Size of the board
@@ -22,10 +23,16 @@ class Cell:
         self.piece = None  # None means empty cell
         self.pos = None
         self.highlighted = False
-        self.neighbors = {dir: None for dir in DIRECTIONS} # None means no neighbor
+        self.neighbors : Cell = {dir: None for dir in DIRECTIONS} # None means no neighbor
 
     def set_neighbor(self, direction, node):
         self.neighbors[direction] = node
+        
+    def has_piece(self):
+        return self.piece != None
+    
+    def has_neighbor(self, direction):
+        return self.neighbors[direction] != None
 
 
 # Create a graph (list) with all the cells

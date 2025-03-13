@@ -17,9 +17,30 @@ class States(Enum):
 
 STATE = States.DEFAULT
 
+# Setup variables before starting a game
 def setup_game():
     global FIRST_MOVE
     FIRST_MOVE = True
+    
+# Check if a flip occurs after a move
+def check_flip(cell: Cell):
+    possible_flips = []
+    current_cell = cell
+    for direction in DIRECTIONS:
+        i = 0
+        next_cell : Cell = current_cell.neighbors[direction]
+        while next_cell != None and next_cell.has_piece() and next_cell.piece.player != cell.piece.player:
+            current_cell = next_cell
+            next_cell : Cell = current_cell.neighbors[direction]
+            possible_flips.append(current_cell.piece)
+            print(i)
+            i += 1
+        if next_cell != None and next_cell.has_piece() and current_cell.neighbors[direction].piece.player == cell.piece.player:
+            for piece in possible_flips:
+                piece.flip()
+        possible_flips.clear()
+        current_cell = cell
+        
 
 # Recursive function, adds valid cells in a single direction until a move in impossible
 # (color_switched) if the sequence of cells has already changed color
@@ -131,6 +152,7 @@ def handle_click(x, y, turn):
         elif piece == None and STATE == States.PENDING_MOVE:
             if selected in VALID_MOVES:
                 make_move(selected)
+                check_flip(selected)
                 turn = 1 - turn
             else:
                 print("invalid move")
