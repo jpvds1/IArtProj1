@@ -7,6 +7,7 @@ from typing import List
 # This variable will be used to hold the selected piece when moving
 PENDING_PIECE = None
 VALID_MOVES = None
+FIRST_MOVE = None
 
 # Enum with possible states
 class States(Enum):
@@ -15,6 +16,10 @@ class States(Enum):
     PENDING_PLACE = 2
 
 STATE = States.DEFAULT
+
+def setup_game():
+    global FIRST_MOVE
+    FIRST_MOVE = True
 
 # Recursive function, adds valid cells in a single direction until a move in impossible
 # (color_switched) if the sequence of cells has already changed color
@@ -103,7 +108,7 @@ def get_selected(x, y):
 
 # Handle what happens when a click occurs
 def handle_click(x, y, turn):
-    global PENDING_PIECE, STATE, VALID_MOVES
+    global PENDING_PIECE, STATE, VALID_MOVES, FIRST_MOVE
     
     selected = get_selected(x, y)
     
@@ -130,9 +135,12 @@ def handle_click(x, y, turn):
             else:
                 print("invalid move")
         elif piece == None and STATE == States.PENDING_PLACE:
-            stack.place_piece(selected, turn)
-            stack.highlighted = False
-            STATE = States.DEFAULT
-            turn = 1 - turn
+            is_corner = selected.id == 0 or selected.id == SIZE - 1 or selected.id == SIZE * SIZE - SIZE or selected.id == SIZE * SIZE - 1
+            if not (FIRST_MOVE and is_corner):
+                FIRST_MOVE = False
+                stack.place_piece(selected, turn)
+                stack.highlighted = False
+                STATE = States.DEFAULT
+                turn = 1 - turn
         
     return turn

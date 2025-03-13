@@ -17,6 +17,7 @@ if not start_game:
 # Game loop
 running = True
 turn = 0
+setup_game()
 
 # only for development
 stack.init_pieces()
