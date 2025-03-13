@@ -22,19 +22,50 @@ def setup_game():
     global FIRST_MOVE
     FIRST_MOVE = True
     
+# Check how many cells are in a row
+def check_row(dir1, dir2, cell: Cell):
+    cells_in_a_row = 1
+    next_cell : Cell = cell.neighbors[dir1]
+    while next_cell != None and next_cell.has_piece() and next_cell.piece.player == cell.piece.player:
+        next_cell = next_cell.neighbors[dir1]
+        cells_in_a_row += 1
+    next_cell = cell.neighbors[dir2]
+    while next_cell != None and next_cell.has_piece() and next_cell.piece.player == cell.piece.player:
+        next_cell = next_cell.neighbors[dir2]
+        cells_in_a_row += 1
+    
+    return cells_in_a_row
+
+
+# Check if a win / loss condition has been met
+# 0 : nothing
+# 1 : win
+# 2 : loss
+def check_conditions(cell: Cell):
+    cells_in_a_row = 1
+    
+    cells_in_a_row = max(cells_in_a_row, check_row("UP", "DOWN", cell))
+    cells_in_a_row = max(cells_in_a_row, check_row("UP_RIGHT", "DOWN_LEFT", cell))
+    cells_in_a_row = max(cells_in_a_row, check_row("UP_LEFT", "DOWN_RIGHT", cell))
+        
+    if cells_in_a_row > 4:
+        return 2
+    elif cells_in_a_row == 4:
+        return 1
+    else:
+        return 0
+        
+
 # Check if a flip occurs after a move
 def check_flip(cell: Cell):
     possible_flips = []
     current_cell = cell
     for direction in DIRECTIONS:
-        i = 0
         next_cell : Cell = current_cell.neighbors[direction]
         while next_cell != None and next_cell.has_piece() and next_cell.piece.player != cell.piece.player:
             current_cell = next_cell
             next_cell : Cell = current_cell.neighbors[direction]
             possible_flips.append(current_cell.piece)
-            print(i)
-            i += 1
         if next_cell != None and next_cell.has_piece() and current_cell.neighbors[direction].piece.player == cell.piece.player:
             for piece in possible_flips:
                 piece.flip()
@@ -153,6 +184,8 @@ def handle_click(x, y, turn):
             if selected in VALID_MOVES:
                 make_move(selected)
                 check_flip(selected)
+                condition = check_conditions(selected)
+                print(condition)
                 turn = 1 - turn
             else:
                 print("invalid move")
