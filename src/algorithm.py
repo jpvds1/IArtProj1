@@ -1,6 +1,7 @@
 from board import graph, DIRECTIONS, SIZE
 from pieces import Piece, stack
 from handlers import check_conditions
+import random
 
 
 WIN_SCORE = 10000
@@ -53,7 +54,15 @@ def get_valid_moves_for_piece(piece):
 # Returns all valid empty cells for new piece placement
 def get_possible_placements(graph, pieces):
     occupied_ids = {piece.cell.id for piece in pieces if piece.cell}
-    return [cell for cell in graph if cell.piece is None and cell.id not in occupied_ids]
+    placements = [cell for cell in graph if cell.piece is None and cell.id not in occupied_ids]
+    
+    # Se nenhuma peça foi colocada, é a primeira jogada; elimina os cantos:
+    if all(piece.cell is None for piece in pieces) or len([p for p in pieces if p.cell is not None]) == 0:
+        prohibited = {0, SIZE - 1, SIZE * SIZE - SIZE, SIZE * SIZE - 1}
+        placements = [cell for cell in placements if cell.id not in prohibited]
+        
+    return placements
+
 
 
 # Returns all valid moves for a given player (placements and movements)
@@ -263,16 +272,15 @@ def minimax(pieces, stack, depth, alpha, beta, maximizing, player):
 
 def get_best_move(pieces, stack, player, depth=2):
     best_value = float('-inf')
-    best_move = None
+    best_moves = []
     possible_moves = get_possible_moves(pieces, player)
     
     if not possible_moves:
-            # Se não há movimentos, tenta forçar uma colocação, se possível
-            placements = get_possible_placements(graph, pieces)
-            if placements:
-                return ('place', placements[0])
-            else:
-                return None
+        placements = get_possible_placements(graph, pieces)
+        if placements:
+            return ('place', placements[0])
+        else:
+            return None
 
     for move in possible_moves:
         snapshot = create_snapshot(pieces, stack)
@@ -291,8 +299,12 @@ def get_best_move(pieces, stack, player, depth=2):
         
         if value > best_value:
             best_value = value
-            best_move = move
-    return best_move
+            best_moves = [move]
+        elif value == best_value:
+            best_moves.append(move)
+    
+    # Se houver mais de uma jogada com a melhor pontuação, escolhe aleatoriamente
+    return random.choice(best_moves) if best_moves else None
 
 
 

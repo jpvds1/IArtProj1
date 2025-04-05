@@ -66,11 +66,16 @@ while running:
         affected_piece, flips_made = apply_move(best_move, turn, stack.pieces, stack)
         outcome = immediate_check_win(affected_piece.cell)
 
+
         if outcome == "WIN":
             winner = turn
+            pygame.display.flip()        
+            pygame.time.wait(2000)          
             break
         elif outcome == "LOSS":
             winner = 1 - turn
+            pygame.display.flip()
+            pygame.time.wait(2000)
             break
 
         turn = 1 - turn

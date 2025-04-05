@@ -30,7 +30,7 @@ def draw_button(text, x, y, width, height, action=None):
             if action:
                 return action()
             else:
-                return True  # Retorna True mesmo sem ação definida
+                return True
     else:
         pygame.draw.rect(screen, BUTTON_COLOR, (x, y, width, height))
 
@@ -39,10 +39,12 @@ def draw_button(text, x, y, width, height, action=None):
     screen.blit(text_surf, text_rect)
 
 
-
+# Menu Human vs Computer
 def bot_config_menu(player_name):
+    pygame.event.clear() 
+    levels = ['Easy', 'Medium', 'Hard']
     selected_algorithm = "Minimax"
-    selected_level = 2  # Nível médio por defeito (2)
+    selected_level = 2
 
     while True:
         screen.fill(BG_COLOR)
@@ -50,11 +52,11 @@ def bot_config_menu(player_name):
         title_text = TITLE.render(f"{player_name} Bot Configuration", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
 
-        if draw_button(f"Algorithm: {selected_algorithm}", WIDTH // 2 - 150, 250, 300, 50):
-            pass  # No futuro alternar algoritmos aqui
-
-        if draw_button(f"Difficulty: {['Easy', 'Medium', 'Hard'][selected_level - 1]}", WIDTH // 2 - 150, 320, 300, 50):
-            selected_level = (selected_level % 3) + 1  # Ciclar níveis 1,2,3
+        if draw_button(f"Algorithm: {selected_algorithm}", WIDTH // 4 - 150, 170, 300, 50):
+            selected_algorithm = "AlphaBeta" if selected_algorithm == "Minimax" else "Minimax"
+        
+        if draw_button(f"Difficulty: {levels[selected_level]}", WIDTH // 4 - 150, 240, 300, 50):
+            selected_level = (selected_level + 1) % len(levels)
 
         if draw_button("Confirm", WIDTH // 2 - 150, 390, 300, 50):
             return selected_algorithm, selected_level
@@ -65,6 +67,51 @@ def bot_config_menu(player_name):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+
+# Menu Computer vs Computer
+def cc_config_menu():
+    pygame.event.clear()
+    levels = ['Easy', 'Medium', 'Hard']
+    selected_level1 = 2
+    selected_level2 = 2
+    selected_algorithm1 = "Minimax"
+    selected_algorithm2 = "Minimax"
+
+    while True:
+        screen.fill(BG_COLOR)
+        
+        title_text = TITLE.render("Computer vs. Computer", True, BLACK)
+        screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 50))
+        
+        comp1_title = FONT.render("Computer 1", True, BLACK)
+        screen.blit(comp1_title, (WIDTH // 4 - comp1_title.get_width() // 2, 120))
+        
+        if draw_button(f"Algorithm: {selected_algorithm1}", WIDTH // 4 - 150, 170, 300, 50):
+            selected_algorithm1 = "AlphaBeta" if selected_algorithm1 == "Minimax" else "Minimax"
+        
+        if draw_button(f"Difficulty: {levels[selected_level1]}", WIDTH // 4 - 150, 240, 300, 50):
+            selected_level1 = (selected_level1 + 1) % len(levels)
+        
+        comp2_title = FONT.render("Computer 2", True, BLACK)
+        screen.blit(comp2_title, (3 * WIDTH // 4 - comp2_title.get_width() // 2, 120))
+        
+        if draw_button(f"Algorithm: {selected_algorithm2}", 3 * WIDTH // 4 - 150, 170, 300, 50):
+            selected_algorithm2 = "AlphaBeta" if selected_algorithm2 == "Minimax" else "Minimax"
+        
+        if draw_button(f"Difficulty: {levels[selected_level2]}", 3 * WIDTH // 4 - 150, 240, 300, 50):
+            selected_level2 = (selected_level2 + 1) % len(levels)
+        
+        if draw_button("Confirm", WIDTH // 2 - 150, 320, 300, 50):
+            return (selected_algorithm1, selected_level1 + 1), (selected_algorithm2, selected_level2 + 1)
+        
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
 
 
 # Show the main menu
@@ -80,10 +127,9 @@ def main_menu():
         if draw_button("Human vs. Computer", WIDTH // 2 - 150, 320, 300, 50):
             bot_config = bot_config_menu("Computer")
             return ("human_vs_computer", bot_config)
-        if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50):
-            bot1_config = bot_config_menu("Computer 1")
-            bot2_config = bot_config_menu("Computer 2")
-            return ("computer_vs_computer", bot1_config, bot2_config)
+        if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50, lambda: True):
+            cc_configs = cc_config_menu()
+            return ("computer_vs_computer",) + cc_configs
         if draw_button("Rules", WIDTH // 2 - 150, 490, 300, 50, show_rules):
             pass
         if draw_button("Quit", WIDTH // 2 - 150, 560, 300, 50, quit_game):
@@ -135,11 +181,6 @@ def show_rules():
 def quit_game():
     pygame.quit()
     quit()
-
-
-# Only while not all modes are implemented
-def not_implemented():
-    print("This mode is not implemented yet!")
     
     
 # Function that displays the menu after the game
