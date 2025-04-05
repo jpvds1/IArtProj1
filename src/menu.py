@@ -25,14 +25,46 @@ def draw_button(text, x, y, width, height, action=None):
 
     if x < mouse[0] < x + width and y < mouse[1] < y + height:
         pygame.draw.rect(screen, BUTTON_HOVER_COLOR, (x, y, width, height))
-        if click[0] == 1 and action:
-            return action()
+        if click[0] == 1:
+            pygame.time.wait(150)
+            if action:
+                return action()
+            else:
+                return True  # Retorna True mesmo sem ação definida
     else:
         pygame.draw.rect(screen, BUTTON_COLOR, (x, y, width, height))
 
     text_surf = FONT.render(text, True, BLACK)
     text_rect = text_surf.get_rect(center=(x + width // 2, y + height // 2))
     screen.blit(text_surf, text_rect)
+
+
+
+def bot_config_menu(player_name):
+    selected_algorithm = "Minimax"
+    selected_level = 2  # Nível médio por defeito (2)
+
+    while True:
+        screen.fill(BG_COLOR)
+
+        title_text = TITLE.render(f"{player_name} Bot Configuration", True, BLACK)
+        screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
+
+        if draw_button(f"Algorithm: {selected_algorithm}", WIDTH // 2 - 150, 250, 300, 50):
+            pass  # No futuro alternar algoritmos aqui
+
+        if draw_button(f"Difficulty: {['Easy', 'Medium', 'Hard'][selected_level - 1]}", WIDTH // 2 - 150, 320, 300, 50):
+            selected_level = (selected_level % 3) + 1  # Ciclar níveis 1,2,3
+
+        if draw_button("Confirm", WIDTH // 2 - 150, 390, 300, 50):
+            return selected_algorithm, selected_level
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
 
 # Show the main menu
@@ -44,11 +76,14 @@ def main_menu():
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
 
         if draw_button("Human vs. Human", WIDTH // 2 - 150, 250, 300, 50, start_game):
-            return True
-        if draw_button("Human vs. Computer", WIDTH // 2 - 150, 320, 300, 50, not_implemented):
-            return "human_vs_computer"
-        if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50, not_implemented):
-            return "computer_vs_computer"
+            return ("human_vs_human",)
+        if draw_button("Human vs. Computer", WIDTH // 2 - 150, 320, 300, 50):
+            bot_config = bot_config_menu("Computer")
+            return ("human_vs_computer", bot_config)
+        if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50):
+            bot1_config = bot_config_menu("Computer 1")
+            bot2_config = bot_config_menu("Computer 2")
+            return ("computer_vs_computer", bot1_config, bot2_config)
         if draw_button("Rules", WIDTH // 2 - 150, 490, 300, 50, show_rules):
             pass
         if draw_button("Quit", WIDTH // 2 - 150, 560, 300, 50, quit_game):

@@ -9,9 +9,11 @@ class Piece:
         self.player = player
         self.cell : Cell = None  # The Cell object this piece belongs to
         self.highlighted = False # Flag to check if the piece was selected
+        self.original_cell = None
 
     def move_to(self, new_cell):
         if new_cell.piece is None:  # Check if the cell is empty
+            self.original_cell = self.cell
             self.cell.piece = None  # Remove from the current cell
             new_cell.piece = self  # Place in the new cell
             self.cell = new_cell  # Update the piece's position
@@ -48,6 +50,8 @@ class Stack:
         self.pieces = []
         
     def place_piece(self, cell, player):
+        if self.stack[player] <= 0:
+            return
         self.stack[player] -= 1
         piece = Piece(player)
         self.pieces.append(piece)
@@ -55,6 +59,9 @@ class Stack:
                 
     # Draw a stack of available pieces for a player (highlighted when selected to place)
     def draw_available(self, screen, player, turn):
+        if self.stack[player] <= 0:
+            return
+
         x = 250 + 300 * player
         y = 600
         
@@ -82,8 +89,6 @@ class Stack:
         piece = Piece(1)
         self.pieces.append(piece)
             
-        self.pieces[0].insert_piece(graph[16])
-        self.pieces[1].insert_piece(graph[6])
         
     # Draw all pieces and stacks
     def draw_stack_and_pieces(self, screen, turn):
