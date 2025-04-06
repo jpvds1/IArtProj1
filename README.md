@@ -46,14 +46,19 @@ python main.py
 
 - Use the graphical menu to select the game mode and needed configurations.
 
-## Code Structure
+## Project Structure
 
+### ./src
 - `main.py` - Main game loop and screen flow
 - `menu.py` - Game mode and bot configuration menus
 - `board.py` - Board creation and drawing logic
 - `pieces.py` - Piece and stack logic
 - `handlers.py` - Interaction handling and move logic
 - `algorithm.py` - Minimax algorithm and evaluation function
+- `logger.py` - Logging results with `.txt` files
+
+### ./game_logs
+If this folder doesn't exist, finish a game and it will be created automatically. Stores the results of each game in a `.txt` file. **"game_log_{timestamp}"**
 
 ## Authors
 
