@@ -5,7 +5,7 @@ Topic: Two-Player Board Games with Adversarial Search Methods.
 
 ## Objective
 
-The goal of this project is to implement the board game Yonmoque Hex with support for multiple game modes (human vs. human, human vs. computer, computer vs. computer), using adversarial search algorithms like Minimax with Alpha-Beta Pruning.
+The goal of this project is to implement the board game Yonmoque Hex with support for multiple game modes (human vs. human, human vs. computer, computer vs. computer), using adversarial search algorithms like Minimax with Alpha-Beta Pruning and Monte Carlo Tree Search.
 
 ## Game Modes
 
@@ -54,7 +54,7 @@ python main.py
 - `board.py` - Board creation and drawing logic
 - `pieces.py` - Piece and stack logic
 - `handlers.py` - Interaction handling and move logic
-- `algorithm.py` - Minimax algorithm and evaluation function
+- `algorithm.py` - Minimax and Monte Carlo algorithms and evaluation function
 - `logger.py` - Logging results with `.txt` files
 
 ### ./game_logs
