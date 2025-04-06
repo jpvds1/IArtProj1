@@ -87,14 +87,25 @@ def game_loop():
         # AI logic
         else:
             algorithm_name, difficulty = bot_configs[turn if game_mode == "computer_vs_computer" else 0]
-            depth = {"Easy": 1, "Medium": 2, "Hard": 3}["Easy Medium Hard".split()[difficulty - 1]]
-
             pygame.display.flip()
 
             current_state = alg.GameState(graph, stack.pieces, stack)
-            start_time = time.time()
-            move = alg.best_move(current_state, turn, depth)
-            move_time = time.time() - start_time
+            
+            if algorithm_name == "MonteCarlo":
+                iterations_map = {"Easy": 25, "Medium": 50, "Hard": 100}
+                difficulty_str = "Easy Medium Hard".split()[difficulty - 1]
+                iterations = iterations_map[difficulty_str]
+                start_time = time.time()
+                move = alg.best_move_mcts(current_state, turn, iterations)
+                move_time = time.time() - start_time
+
+            else:
+                depth_map = {"Easy": 1, "Medium": 2, "Hard": 3}
+                difficulty_str = "Easy Medium Hard".split()[difficulty - 1]
+                depth = depth_map[difficulty_str]
+                start_time = time.time()
+                move = alg.best_move(current_state, turn, depth)
+                move_time = time.time() - start_time
 
             if move[0] == "placement":
                 selected_cell = next(c for c in graph if c.id == move[1].id)
