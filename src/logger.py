@@ -23,6 +23,9 @@ class GameLogger:
         self.winner = winner
 
     def save_to_file(self):
+        from board import SIZE, graph
+        from pieces import stack
+
         total_time = round(time.time() - self.start_time, 2)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         folder = "game_logs"
@@ -39,3 +42,20 @@ class GameLogger:
             file.write("Moves:\n")
             for i, move in enumerate(self.moves):
                 file.write(f"{i + 1}. {move}\n")
+
+            # Add an empty line before board state
+            file.write("\n")
+            file.write(f"stack1: {stack.stack[0]}\n")
+            file.write(f"stack2: {stack.stack[1]}\n")
+            file.write("\n")
+
+            # Write final board state as grid
+            for row in range(SIZE):
+                line = ""
+                for col in range(SIZE):
+                    cell = graph[row * SIZE + col]
+                    if cell.piece is None:
+                        line += "-"
+                    else:
+                        line += str(cell.piece.player + 1)
+                file.write(line + "\n")

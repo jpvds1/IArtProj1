@@ -1,5 +1,6 @@
 import pygame
 from board import *
+import os
 
 pygame.init()
 
@@ -16,6 +17,14 @@ TITLE = pygame.font.Font(None, 50)
 # Initialize screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Yonmoque Hex")
+
+def wait_for_mouse_release():
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONUP:
+                waiting = False
+
 
 # Draw a clickable button
 def draw_button(text, x, y, width, height, action=None):
@@ -126,11 +135,15 @@ def main_menu():
         if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50):
             configs = cc_config_menu()
             return ("computer_vs_computer",) + configs
-        if draw_button("Board Size", WIDTH // 2 - 150, 490, 300, 50, board_size):
+        if draw_button("See Results", WIDTH // 2 - 150, 460, 300, 50, view_results_menu):
+            wait_for_mouse_release()
             pass
-        if draw_button("Rules", WIDTH // 2 - 150, 560, 300, 50, show_rules):
+        if draw_button("Board Size", WIDTH // 2 - 150, 520, 300, 50, board_size):
+            wait_for_mouse_release()
             pass
-        if draw_button("Quit", WIDTH // 2 - 150, 630, 300, 50, quit_game):
+        if draw_button("Rules", WIDTH // 2 - 150, 590, 300, 50, show_rules):
+            pass
+        if draw_button("Quit", WIDTH // 2 - 150, 660, 300, 50, quit_game):
             return False
 
         pygame.display.flip()
@@ -139,6 +152,7 @@ def main_menu():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
 
 # Called when starting the game manually
 def start_game():
@@ -178,28 +192,34 @@ def show_rules():
 # Show board size page
 def board_size():
     global SIZE
-    
+
     running = True
     while running:
         screen.fill(BG_COLOR)
-        title = TITLE.render("Board Size", True, BLACK)
-        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
-        
-        size_text = "Size: " + str(SIZE)
-        size_text = FONT.render(size_text, True, BLACK)
-        
-        screen.blit(size_text, (WIDTH // 2 - size_text.get_width() // 2, 200))
-        
-        if draw_button("Increase", WIDTH // 2 - 150, 400, 300, 50):
-            increase_size()
+
+        # Title
+        title = TITLE.render("Board Size Configuration", True, BLACK)
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 80))
+
+        # Display current size
+        size_label = FONT.render("Current Size:", True, BLACK)
+        size_value = TITLE.render(str(SIZE), True, BLACK)
+        screen.blit(size_label, (WIDTH // 2 - size_label.get_width() // 2, 200))
+        screen.blit(size_value, (WIDTH // 2 - size_value.get_width() // 2, 240))
+
+        # Buttons
+        if draw_button("Increase", WIDTH // 2 - 150, 330, 300, 50):
             if SIZE < 9:
                 SIZE += 2
-            
-        if draw_button("Decrease", WIDTH // 2 - 150, 470, 300, 50):
-            decrease_size()
+
+        if draw_button("Decrease", WIDTH // 2 - 150, 400, 300, 50):
             if SIZE > 5:
                 SIZE -= 2
-            
+
+        if draw_button("Back", WIDTH // 2 - 150, 470, 300, 50):
+            wait_for_mouse_release()
+            return
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -207,7 +227,99 @@ def board_size():
                 pygame.quit()
                 quit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                running = False
+                return
+
+                
+        
+def view_board_from_file(filepath):
+    from board import create_graph, draw_graph
+    from pieces import stack, Piece
+    from board import screen, BG_COLOR, WIDTH, HEIGHT, HEX_RADIUS
+    import re
+
+    with open(filepath, "r") as file:
+        lines = [line.strip() for line in file if line.strip()]
+
+    # Parse board size
+    board_size_line = next(line for line in lines if line.startswith("Board Size:"))
+    board_size = int(board_size_line.split(":")[1].strip())
+    globals()["SIZE"] = board_size  # update global SIZE
+
+    # Rebuild board and stack
+    cells = create_graph()
+    stack.__init__()
+    stack.pieces.clear()
+
+    # Get stacks
+    stack1_line = next(line for line in lines if line.startswith("stack1:"))
+    stack2_line = next(line for line in lines if line.startswith("stack2:"))
+    stack.stack[0] = int(stack1_line.split(":")[1].strip())
+    stack.stack[1] = int(stack2_line.split(":")[1].strip())
+
+    # Find the start of the board drawing (after empty line)
+    layout_start = lines.index("stack2: " + str(stack.stack[1])) + 1
+    while layout_start < len(lines) and not re.match(r"[-12]+", lines[layout_start]):
+        layout_start += 1
+
+    # Draw pieces from the layout
+    for row_index, line in enumerate(lines[layout_start:]):
+        for col_index, char in enumerate(line):
+            if char in ['1', '2']:
+                player = int(char) - 1
+                cell_id = row_index * board_size + col_index
+                if 0 <= cell_id < len(cells):
+                    cell = cells[cell_id]
+                    piece = Piece(player)
+                    piece.insert_piece(cell)
+                    stack.pieces.append(piece)
+
+    # Visualize
+    running = True
+    while running:
+        screen.fill(BG_COLOR)
+        draw_graph()
+        stack.draw_stack_and_pieces(screen, turn=0)
+
+        # Highlight last move?
+        if draw_button("Back", WIDTH // 2 - 150, HEIGHT - 80, 300, 50):
+            return
+
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+     
+                
+def view_results_menu():
+    running = True
+    folder = "game_logs"
+    logs = sorted([f for f in os.listdir(folder) if f.endswith(".txt")]) if os.path.exists(folder) else []
+
+    while running:
+        screen.fill(BG_COLOR)
+
+        title = TITLE.render("Game Logs", True, BLACK)
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
+
+        if not logs:
+            no_logs = FONT.render("No logs found.", True, BLACK)
+            screen.blit(no_logs, (WIDTH // 2 - no_logs.get_width() // 2, HEIGHT // 2))
+        else:
+            for i, log in enumerate(logs[:8]):  # Limit to 8 files on screen
+                if draw_button(log, 100, 120 + i * 60, 600, 50):
+                    wait_for_mouse_release()
+                    view_board_from_file(os.path.join(folder, log))
+
+        if draw_button("Back", WIDTH // 2 - 150, HEIGHT - 80, 300, 50):
+            return
+
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
 
 # Show the final game state and winner
