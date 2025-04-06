@@ -206,3 +206,8 @@ def handle_click(x, y, turn):
                 turn = 1 - turn
         
     return turn
+
+
+def reset_handlers(new_graph):
+    global graph
+    graph = new_graph

@@ -2,7 +2,7 @@ import copy
 import random
 from board import graph, SIZE, NEUTRAL, WHITE, BLUE, DIRECTIONS
 from pieces import stack, Piece
-from handlers import check_conditions, check_flip
+from handlers import check_flip
 
 # ------------------ GAME STATE ------------------
 

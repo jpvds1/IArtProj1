@@ -169,10 +169,9 @@ def show_rules():
 
 # Show the final game state and winner
 def show_final_state(winner, last_move, turn, stack):
-    running = True
     final_font = pygame.font.Font(None, 35)
 
-    while running:
+    while True:
         screen.fill(BG_COLOR)
         draw_graph()
         stack.draw_stack_and_pieces(screen, turn)
@@ -183,14 +182,19 @@ def show_final_state(winner, last_move, turn, stack):
 
         message = f"Player {winner + 1} won!"
         text_surface = final_font.render(message, True, BLACK)
-        text_rect = text_surface.get_rect(center=(WIDTH // 2, HEIGHT - 80))
+        text_rect = text_surface.get_rect(center=(WIDTH // 2, HEIGHT - 150))
         screen.blit(text_surface, text_rect)
+
+        if draw_button("Play Again", WIDTH // 2 - 300 - 20 // 2, HEIGHT - 100, 300, 50):
+            return "restart"
+        if draw_button("Quit", WIDTH // 2 + 20 // 2, HEIGHT - 100, 300, 50):
+            return "quit"
 
         pygame.display.flip()
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                running = False
+            if event.type == pygame.QUIT:
+                return "quit"
 
 
 # Function to quit the game
