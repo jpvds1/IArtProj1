@@ -1,4 +1,6 @@
 import time
+import os
+from datetime import datetime
 
 class GameLogger:
     def __init__(self, game_mode, bot_configs, board_size):
@@ -11,19 +13,22 @@ class GameLogger:
 
     def log_move(self, time, player, move_type, cell_id, from_id=None):
         time = round(time, 2)
-        
+
         if move_type == "placement":
             self.moves.append(f"Player {player + 1} placed at cell {cell_id}, took {time} seconds")
         elif move_type == "move":
             self.moves.append(f"Player {player + 1} moved from cell {from_id} to {cell_id}, took {time} seconds")
 
-
-
     def set_winner(self, winner):
         self.winner = winner
 
-    def save_to_file(self, filename="game_log.txt"):
+    def save_to_file(self):
         total_time = round(time.time() - self.start_time, 2)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        folder = "game_logs"
+        os.makedirs(folder, exist_ok=True)
+        filename = os.path.join(folder, f"game_log_{timestamp}.txt")
+
         with open(filename, "w") as file:
             file.write(f"Game Mode: {self.game_mode}\n")
             if self.bot_configs:
