@@ -243,7 +243,7 @@ def view_board_from_file(filepath):
     # Parse board size
     board_size_line = next(line for line in lines if line.startswith("Board Size:"))
     board_size = int(board_size_line.split(":")[1].strip())
-    globals()["SIZE"] = board_size  # update global SIZE
+    globals()["SIZE"] = board_size
 
     # Rebuild board and stack
     cells = create_graph()
@@ -280,7 +280,6 @@ def view_board_from_file(filepath):
         draw_graph()
         stack.draw_stack_and_pieces(screen, turn=0)
 
-        # Highlight last move?
         if draw_button("Back", WIDTH // 2 - 150, HEIGHT - 80, 300, 50):
             return
 
@@ -295,7 +294,11 @@ def view_board_from_file(filepath):
 def view_results_menu():
     running = True
     folder = "game_logs"
-    logs = sorted([f for f in os.listdir(folder) if f.endswith(".txt")]) if os.path.exists(folder) else []
+    logs = sorted(
+        [f for f in os.listdir(folder) if f.endswith(".txt")],
+            reverse=True
+    ) if os.path.exists(folder) else []
+
 
     while running:
         screen.fill(BG_COLOR)
