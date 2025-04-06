@@ -12,11 +12,9 @@ BUTTON_HOVER_COLOR = (0, 0, 255)
 FONT = pygame.font.Font(None, 35)
 TITLE = pygame.font.Font(None, 50)
 
-
 # Screen with title
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Yonmoque Hex")
-
 
 # Draw buttons
 def draw_button(text, x, y, width, height, action=None):
@@ -39,7 +37,6 @@ def draw_button(text, x, y, width, height, action=None):
     screen.blit(text_surf, text_rect)
 
 
-
 def bot_config_menu(player_name):
     selected_algorithm = "Minimax"
     selected_level = 2  # Nível médio por defeito (2)
@@ -50,14 +47,24 @@ def bot_config_menu(player_name):
         title_text = TITLE.render(f"{player_name} Bot Configuration", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
 
+        # Alternar entre Minimax e Monte Carlo ao clicar no botão de algoritmo
         if draw_button(f"Algorithm: {selected_algorithm}", WIDTH // 2 - 150, 250, 300, 50):
-            pass  # No futuro alternar algoritmos aqui
+            if selected_algorithm == "Minimax":
+                selected_algorithm = "Monte Carlo"
+            elif selected_algorithm == "Monte Carlo":
+                selected_algorithm = "Random"
+            else:
+                selected_algorithm = "Minimax"
 
-        if draw_button(f"Difficulty: {['Easy', 'Medium', 'Hard'][selected_level - 1]}", WIDTH // 2 - 150, 320, 300, 50):
-            selected_level = (selected_level % 3) + 1  # Ciclar níveis 1,2,3
+        # Botões de dificuldade (apenas para Minimax)
+        if selected_algorithm == "Minimax":
+            if draw_button(f"Difficulty: {['Easy', 'Medium', 'Hard'][selected_level - 1]}", WIDTH // 2 - 150, 320, 300, 50):
+                selected_level = (selected_level % 3) + 1  # Ciclar níveis 1,2,3
 
+        # Botão de confirmação
         if draw_button("Confirm", WIDTH // 2 - 150, 390, 300, 50):
-            return selected_algorithm, selected_level
+            return selected_algorithm, selected_level if selected_algorithm == "Minimax" else None
+
 
         pygame.display.flip()
 
@@ -66,12 +73,11 @@ def bot_config_menu(player_name):
                 pygame.quit()
                 quit()
 
-
 # Show the main menu
 def main_menu():
     while True:
         screen.fill(BG_COLOR)
-        
+
         title_text = TITLE.render("Welcome to Yonmoque-Hex!", True, BLACK)
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
 
@@ -140,11 +146,12 @@ def quit_game():
 # Only while not all modes are implemented
 def not_implemented():
     print("This mode is not implemented yet!")
-    
-    
+
+
 # Function that displays the menu after the game
 def end_game(winner):
     screen.fill(BG_COLOR)
     text = FONT.render("Player " + str(winner) + " won!", True, BLACK)
     screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 400))
     pygame.display.flip()
+

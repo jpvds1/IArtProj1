@@ -4,6 +4,7 @@ from pieces import *
 from handlers import *
 from menu import *
 from algorithm import *
+from ai import *
 
 # Initialize Pygame
 pygame.init()
@@ -43,6 +44,7 @@ while running:
     draw_graph()
     stack.draw_stack_and_pieces(screen, turn)
 
+    # Dentro do main loop:
     if game_mode == "human_vs_human" or (game_mode == "human_vs_computer" and turn == 0):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -57,12 +59,18 @@ while running:
     else:
         # Turno do computador
         algorithm, level = bot_configs[turn if game_mode == "computer_vs_computer" else 0]
-        depth = {"Easy": 1, "Medium": 2, "Hard": 3}[["Easy", "Medium", "Hard"][level - 1]]
 
-        pygame.display.flip() 
-        pygame.time.wait(1000)
+        if algorithm == "Monte Carlo":
+            monte_carlo = MonteCarloTreeSearch()
+            best_move = monte_carlo.search(stack.pieces, turn, maxIterations=50)
+        elif algorithm == "Random":
+            best_move = random_move(stack.pieces, turn)
 
-        best_move = get_best_move(stack.pieces, stack, turn, depth)
+        if best_move[0] is None or best_move[1] is None:
+            print("Bot não encontrou movimentos válidos.")
+            winner = 1 - turn  # Se o bot não pode jogar, o outro jogador vence
+            break
+
         affected_piece, flips_made = apply_move(best_move, turn, stack.pieces, stack)
         outcome = immediate_check_win(affected_piece.cell)
 
@@ -74,6 +82,7 @@ while running:
             break
 
         turn = 1 - turn
+
 
     if turn >= 2:
         winner = turn - 1
