@@ -123,9 +123,11 @@ def main_menu():
         if draw_button("Computer vs. Computer", WIDTH // 2 - 150, 390, 300, 50):
             configs = cc_config_menu()
             return ("computer_vs_computer",) + configs
-        if draw_button("Rules", WIDTH // 2 - 150, 490, 300, 50, show_rules):
+        if draw_button("Board Size", WIDTH // 2 - 150, 490, 300, 50, board_size):
             pass
-        if draw_button("Quit", WIDTH // 2 - 150, 560, 300, 50, quit_game):
+        if draw_button("Rules", WIDTH // 2 - 150, 560, 300, 50, show_rules):
+            pass
+        if draw_button("Quit", WIDTH // 2 - 150, 630, 300, 50, quit_game):
             return False
 
         pygame.display.flip()
@@ -145,6 +147,10 @@ def show_rules():
         "Yonmoque-Hex is a turn-based strategy game.",
         "Avoid making a 5-piece line.",
         "Make a 4-piece line to win.",
+        "Win only by moving, not by placing.",
+        "Surround an enemy piece to change the color.",
+        "Move to any of 6 directions.",
+        "Multiple tiles of the same color of the piece count as 1.",
         "Press ESC to return to menu."
     ]
     running = True
@@ -157,6 +163,40 @@ def show_rules():
             rule_text = FONT.render(rule, True, BLACK)
             screen.blit(rule_text, (WIDTH // 2 - rule_text.get_width() // 2, 200 + i * 40))
 
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+                
+# Show board size page
+def board_size():
+    global SIZE
+    
+    running = True
+    while running:
+        screen.fill(BG_COLOR)
+        title = TITLE.render("Board Size", True, BLACK)
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+        
+        size_text = "Size: " + str(SIZE)
+        size_text = FONT.render(size_text, True, BLACK)
+        
+        screen.blit(size_text, (WIDTH // 2 - size_text.get_width() // 2, 200))
+        
+        if draw_button("Increase", WIDTH // 2 - 150, 400, 300, 50):
+            increase_size()
+            if SIZE < 9:
+                SIZE += 2
+            
+        if draw_button("Decrease", WIDTH // 2 - 150, 470, 300, 50):
+            decrease_size()
+            if SIZE > 3:
+                SIZE -= 2
+            
         pygame.display.flip()
 
         for event in pygame.event.get():

@@ -10,13 +10,14 @@ import algorithm as alg
 pygame.init()
 
 def game_loop():
+    print(1)
     start_game = main_menu()
-
+    print(2)
     # Quit game
     if not start_game:
         pygame.quit()
         quit()
-
+    print(3)
     # Determine game mode and bot configs
     if start_game[0] == "human_vs_computer":
         bot_configs = [start_game[1]]
@@ -30,8 +31,7 @@ def game_loop():
     turn = 0
     winner = None
     setup_game()
-    global graph
-    graph = create_graph(SIZE)
+    graph = create_graph()
     reset_handlers(graph)
     stack.__init__()
 

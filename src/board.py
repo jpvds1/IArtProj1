@@ -4,7 +4,8 @@ import math
 
 # Screen settings
 WIDTH, HEIGHT = 800, 800
-SIZE = 5 # Size of the board
+graph = None
+SIZE = 5 # SIZE of the board
 HEX_RADIUS = (WIDTH - 200) // (SIZE + (SIZE - 1 // 2)) / 2
 BG_COLOR = (255, 255, 255) # Background Color
 NEUTRAL, WHITE, BLUE = 0, 1, 2 # Types of cells
@@ -36,40 +37,42 @@ class Cell:
 
 
 # Create a graph (list) with all the cells
-def create_graph(size=5):
+def create_graph():
+    global SIZE, graph
+    print("SIZE: " + str(SIZE))
     # Create all the default cells
-    cells = [Cell(i) for i in range(size * size)]
+    cells = [Cell(i) for i in range(SIZE * SIZE)]
 
     # Set the neighbors for each cell
-    for i in range(size * size):
+    for i in range(SIZE * SIZE):
         cell = cells[i]
         cell.type = WHITE
         
-        if i % size != 0:  # Not first column
+        if i % SIZE != 0:  # Not first column
             cells[i - 1]. set_neighbor("DOWN_RIGHT", cell)
             cell.set_neighbor("UP_LEFT", cells[i - 1])
 
-        if i >= size:  # Not first row
-            cells[i - size].set_neighbor("DOWN_LEFT", cell)
-            cell.set_neighbor("UP_RIGHT", cells[i - size])
+        if i >= SIZE:  # Not first row
+            cells[i - SIZE].set_neighbor("DOWN_LEFT", cell)
+            cell.set_neighbor("UP_RIGHT", cells[i - SIZE])
 
-        if i >= size + 1 and (i % size) != 0:  # Not first column and not first row
-            cells[i - size - 1].set_neighbor("DOWN", cell)
-            cell.set_neighbor("UP", cells[i - size - 1])
+        if i >= SIZE + 1 and (i % SIZE) != 0:  # Not first column and not first row
+            cells[i - SIZE - 1].set_neighbor("DOWN", cell)
+            cell.set_neighbor("UP", cells[i - SIZE - 1])
         
     # Set the blue cells    
-    for i in range(size):
+    for i in range(SIZE):
         cells[i].type = BLUE
-        cells[size * size - i - 1].type = BLUE
-        cells[i * size - 1].type = BLUE
-        cells[i * size].type = BLUE
+        cells[SIZE * SIZE - i - 1].type = BLUE
+        cells[i * SIZE - 1].type = BLUE
+        cells[i * SIZE].type = BLUE
         
     # Set the neutral cells
     cells[0].type = NEUTRAL
-    cells[size - 1].type = NEUTRAL
-    cells[size * size - size].type = NEUTRAL
-    cells[size * size - 1].type = NEUTRAL
-    cells[size * size // 2].type = NEUTRAL
+    cells[SIZE - 1].type = NEUTRAL
+    cells[SIZE * SIZE - SIZE].type = NEUTRAL
+    cells[SIZE * SIZE - 1].type = NEUTRAL
+    cells[SIZE * SIZE // 2].type = NEUTRAL
     
     
     # Set the positions of the cells
@@ -78,15 +81,16 @@ def create_graph(size=5):
     for i in range(SIZE):
         col_pos = row_pos.copy()
         for d in range(SIZE):
-            cells[i * size + d].pos = (col_pos[0], col_pos[1])
+            cells[i * SIZE + d].pos = (col_pos[0], col_pos[1])
             col_pos[0] += HEX_RADIUS * 1.5
             col_pos[1] += HEX_RADIUS * math.sqrt(3) / 2
         row_pos[0] -= HEX_RADIUS * 1.5
         row_pos[1] += HEX_RADIUS * math.sqrt(3) / 2
+        
+    graph = cells
 
     return cells
-            
-graph = create_graph(SIZE)
+        
 
 
 # Draws an hexagon
@@ -125,3 +129,15 @@ def draw_graph():
         if cell.highlighted == True:
             x, y = cell.pos
             draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
+            
+
+
+def increase_size():
+    global SIZE
+    if SIZE < 9:
+        SIZE += 2
+    
+def decrease_size():
+    global SIZE
+    if SIZE > 3:
+        SIZE -= 2
