@@ -203,3 +203,53 @@ def handle_click(x, y, turn):
                 turn = 1 - turn
         
     return turn
+
+def apply_move(move, player, pieces, stack):
+    if move is None:
+        return None, []
+
+    if not isinstance(move, tuple) or len(move) != 2:
+        raise ValueError(f"Formato de movimento inválido: {move}")
+
+    action, cell = move
+    if action == "place":
+        new_piece = Piece(player)
+        cell.piece = new_piece
+        stack.pieces.append(new_piece)
+        return new_piece, []
+
+    raise ValueError(f"Ação desconhecida: {action}")
+
+def immediate_check_win(cell):
+    if cell.piece is None:
+        return None
+
+    cells_in_a_row = 1
+    cells_in_a_row = max(cells_in_a_row, check_row("UP", "DOWN", cell))
+    cells_in_a_row = max(cells_in_a_row, check_row("UP_RIGHT", "DOWN_LEFT", cell))
+    cells_in_a_row = max(cells_in_a_row, check_row("UP_LEFT", "DOWN_RIGHT", cell))
+
+    if cells_in_a_row > 4:
+        return "WIN"
+    elif cells_in_a_row == 4:
+        return "LOSS"
+    else:
+        return None
+
+def check_win_for_piece(piece, opponent=False):
+
+    player = 1 - piece.player if opponent else piece.player
+
+    row_cells = piece.cell.row  
+    if all(cell.piece and cell.piece.player == player for cell in row_cells):
+        return True
+
+    column_cells = piece.cell.column  
+    if all(cell.piece and cell.piece.player == player for cell in column_cells):
+        return True
+
+    diagonal_cells = piece.cell.diagonal 
+    if all(cell.piece and cell.piece.player == player for cell in diagonal_cells):
+        return True
+
+    return False

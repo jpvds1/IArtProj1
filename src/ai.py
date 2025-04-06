@@ -1,9 +1,18 @@
-import copy
+import time
 import random
+import copy
 from pieces import Piece, Stack
 from board import graph, DIRECTIONS
-from algorithm import *
+from algorithm import get_possible_moves, check_win_for_piece
 
+def random_move(state, player):
+    available_moves = get_possible_moves(state, player)
+
+    if available_moves:
+        print(f"Movimentos disponíveis: {available_moves}")
+        return available_moves[0]
+    print("Nenhum movimento disponível")
+    return None
 
 class Node:
     def __init__(self, state, player, parent=None):
@@ -21,30 +30,48 @@ class Node:
         return moves
 
     def isFullyExpanded(self):
+        # Verifica se o nó está completamente expandido
         return len(self.availableMoves) == 0
 
     def getUCT(self):
+        # Calcula o valor UCT (Upper Confidence Bound for Trees)
         if self.visits == 0:
             return float('inf')
         win_rate = self.results[self.player] / self.visits
-        exploration = (2 * (self.parent.visits ** 0.5)) / self.visits
+        exploration = self.explorationConstant * (2 * (self.parent.visits ** 0.5)) / self.visits
         return win_rate + exploration
 
 
 class MonteCarloTreeSearch:
-    def __init__(self, explorationConstant=1.4):
+    def __init__(self, explorationConstant=1.4, difficulty='Medium'):
         self.explorationConstant = explorationConstant
+        self.difficulty = difficulty  # Nível de dificuldade
+        self.max_time = self.set_max_time()
 
     def otherPlayer(self, player):
+        # Retorna o jogador oposto
         return 1 - player
 
     def isTerminal(self, node):
-        # Verifica vitória ou derrota usando as funções de algorithm.py
+        # Verifica se o estado do nó é terminal (vitória ou derrota)
         return check_win_for_piece(node.state) is not None
 
-    def search(self, initialState, player, maxIterations=100):
+    def set_max_time(self):
+        # Define o tempo máximo de pesquisa com base na dificuldade
+        if self.difficulty == 'Easy':
+            return 2  # Menos tempo para dificuldade fácil
+        elif self.difficulty == 'Medium':
+            return 5  # Tempo moderado para dificuldade média
+        else:  # 'Hard'
+            return 10  # Mais tempo para dificuldade difícil
+
+    def search(self, initialState, player):
+        # Realiza a pesquisa de Monte Carlo
+        start_time = time.time()
         root = Node(initialState, player)
-        for _ in range(maxIterations):
+
+        # Executa a pesquisa enquanto o tempo não ultrapassar o limite
+        while time.time() - start_time < self.max_time:
             node = root
             state = copy.deepcopy(initialState)
             while not self.isTerminal(node):
@@ -54,41 +81,50 @@ class MonteCarloTreeSearch:
                     node = self.select(node)
             score = self.simulation(node, state)
             self.backpropagate(node, score)
+
         return self.getBestMove(root)
 
     def select(self, node):
+        # Seleciona o nó filho com o maior valor UCT
         if not node.children:
             return node
         return max(node.children, key=lambda child: child.getUCT())
 
     def expand(self, node, state, max_depth=3):
-        if len(node.availableMoves) == 0 or node.parent and node.parent.visits >= max_depth:
+        # Expande o nó com novos movimentos
+        if len(node.availableMoves) == 0 or (node.parent and node.parent.visits >= max_depth):
             return
         move = node.availableMoves.pop(0)
         newState = copy.deepcopy(state)
-        # Recupera as posições equivalentes no novo estado
-        from_cell = next(cell for cell in newState if cell.id == move[0].id)
-        to_cell = next(cell for cell in newState if cell.id == move[1].id)
-        from_cell.piece.move_to(to_cell)
+
+        action, cell = move
+        if action == "place":
+            new_piece = Piece(node.player)
+            cell.piece = new_piece
+            newState.pieces.append(new_piece)
 
         childNode = Node(newState, self.otherPlayer(node.player), node)
         node.children.append(childNode)
 
     def simulation(self, node, state, maxSimulations=50):
+        # Simulação para explorar um possível resultado de um movimento
         simulations = 0
         while not self.isTerminal(node) and simulations < maxSimulations:
             moves = node.getAvailableMoves()
             if not moves:
                 break
             move = random.choice(moves)
-            from_cell = next(cell for cell in state if cell.id == move[0].id)
-            to_cell = next(cell for cell in state if cell.id == move[1].id)
-            from_cell.piece.move_to(to_cell)
+            action, cell = move
+            if action == "place":
+                new_piece = Piece(node.player)
+                cell.piece = new_piece
+                state.pieces.append(new_piece)
             node = Node(state, self.otherPlayer(node.player), node)
             simulations += 1
         return node.parent.player if node.parent else 0
-
+    
     def backpropagate(self, node, score):
+        # Propaga o resultado da simulação de volta pelos nós pais
         while node is not None:
             node.visits += 1
             node.results[score] += 1
@@ -96,62 +132,9 @@ class MonteCarloTreeSearch:
 
     def getBestMove(self, node):
         if not node.children:
-            return None, None
-        return max(node.children, key=lambda child: child.visits + child.results[node.player]).availableMoves[0]
+            return None
+        for child in node.children:
+            for move in child.availableMoves:
+                return move 
+        return None
 
-
-def random_move(state, player):
-    available_moves = get_possible_moves(state, player)
-    
-    if available_moves:
-        return random.choice(available_moves)
-    return None, None
-
-def minimax(pieces, stack, depth, alpha, beta, maximizing, player):
-    if depth == 0:
-        return heuristic(pieces, player)
-
-    moves = get_possible_moves(pieces, player if maximizing else 1 - player)
-    if not moves:
-        return heuristic(pieces, player)
-
-    if maximizing:
-        max_eval = float('-inf')
-        for move in moves:
-            snapshot = create_snapshot(pieces, stack)
-            affected_piece, flips_made = apply_move(move, player, pieces, stack)
-            outcome = check_win_for_piece(affected_piece.cell)
-            if outcome == "WIN":
-                eval_value = WIN_SCORE
-            elif outcome == "LOSS":
-                eval_value = LOSS_SCORE
-            else:
-                eval_value = minimax(pieces, stack, depth - 1, alpha, beta, False, player)
-            
-            restore_snapshot(snapshot, pieces, stack)
-            
-            max_eval = max(max_eval, eval_value)
-            alpha = max(alpha, eval_value)
-            if beta <= alpha:
-                break
-        return max_eval
-    else:
-        min_eval = float('inf')
-        for move in moves:
-            snapshot = create_snapshot(pieces, stack)
-            affected_piece, flips_made = apply_move(move, 1 - player, pieces, stack)
-            outcome = check_win_for_piece(affected_piece.cell)
-            if outcome == "WIN":
-                eval_value = LOSS_SCORE
-            elif outcome == "LOSS":
-                eval_value = WIN_SCORE
-            else:
-                eval_value = minimax(pieces, stack, depth - 1, alpha, beta, True, player)
-            
-            restore_snapshot(snapshot, pieces, stack)
-            
-            min_eval = min(min_eval, eval_value)
-            beta = min(beta, eval_value)
-            if beta <= alpha:
-                break
-        return min_eval

@@ -3,8 +3,8 @@ from board import *
 from pieces import *
 from handlers import *
 from menu import *
-from algorithm import *
 from ai import *
+from algorithm import *
 
 # Initialize Pygame
 pygame.init()
@@ -60,17 +60,22 @@ while running:
         # Turno do computador
         algorithm, level = bot_configs[turn if game_mode == "computer_vs_computer" else 0]
 
+        # Aqui você já recebeu o `best_move` da função random_move ou do algoritmo Monte Carlo
         if algorithm == "Monte Carlo":
             monte_carlo = MonteCarloTreeSearch()
             best_move = monte_carlo.search(stack.pieces, turn, maxIterations=50)
+            best_move = best_move[1]
         elif algorithm == "Random":
             best_move = random_move(stack.pieces, turn)
+            best_move = best_move[1]
 
-        if best_move[0] is None or best_move[1] is None:
+        # Ajuste: `best_move` agora é um único `Cell`, então passe diretamente para `apply_move`
+        if best_move is None:
             print("Bot não encontrou movimentos válidos.")
             winner = 1 - turn  # Se o bot não pode jogar, o outro jogador vence
             break
 
+        # Aplicando o movimento corretamente, passando apenas o `Cell`
         affected_piece, flips_made = apply_move(best_move, turn, stack.pieces, stack)
         outcome = immediate_check_win(affected_piece.cell)
 
