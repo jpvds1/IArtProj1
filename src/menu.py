@@ -192,6 +192,8 @@ def show_rules():
 # Show board size page
 def board_size():
     global SIZE
+    
+    wait_for_mouse_release() 
 
     running = True
     while running:
@@ -298,7 +300,8 @@ def view_results_menu():
         [f for f in os.listdir(folder) if f.endswith(".txt")],
             reverse=True
     ) if os.path.exists(folder) else []
-
+    
+    wait_for_mouse_release() 
 
     while running:
         screen.fill(BG_COLOR)
