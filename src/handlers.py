@@ -175,16 +175,30 @@ def handle_click(x, y, turn):
     elif selected == 0:
         if turn == 0 and STATE == States.DEFAULT:
             setup_place()
+        elif turn == 0 and STATE == States.PENDING_PLACE:
+            stack.highlighted = False
+            STATE = States.DEFAULT
 
     elif selected == 1:
         if turn == 1 and STATE == States.DEFAULT:
             setup_place()
+        elif turn == 1 and STATE == States.PENDING_PLACE:
+            stack.highlighted = False
+            STATE = States.DEFAULT
 
     else:
         piece = selected.piece
         if piece is not None and STATE == States.DEFAULT and piece.player == turn:
             setup_move(piece)
             valid_moves(piece)
+        elif piece is not None and STATE == States.PENDING_MOVE and piece.cell.id == PENDING_PIECE.cell.id:
+            PENDING_PIECE.highlighted = False
+            if VALID_MOVES:
+                for cell in VALID_MOVES:
+                    cell.highlighted = False
+            VALID_MOVES = []
+            PENDING_PIECE = None
+            STATE = States.DEFAULT
         elif piece is None and STATE == States.PENDING_MOVE:
             if selected in VALID_MOVES:
                 from_id = PENDING_PIECE.cell.id

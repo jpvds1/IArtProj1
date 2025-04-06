@@ -39,7 +39,7 @@ class Cell:
 # Create a graph (list) with all the cells
 def create_graph():
     global SIZE, graph
-    print("SIZE: " + str(SIZE))
+
     # Create all the default cells
     cells = [Cell(i) for i in range(SIZE * SIZE)]
 
