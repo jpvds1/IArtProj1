@@ -5,14 +5,14 @@ from board import graph, SIZE, NEUTRAL, WHITE, BLUE, DIRECTIONS
 from pieces import stack, Piece
 from handlers import check_flip
 
-# ------------------ GAME STATE ------------------
 
+# ------------------ GAME STATE CLASS ------------------
 class GameState:
     def __init__(self, cells, pieces, stack):
         self.cells = cells          # List of cells on the board
         self.pieces = pieces        # All placed pieces
         self.stack = stack          # Piece stock for each player
-        self.last_action = {        # Info about the last move
+        self.last_action = {        # Information about the last move
             "player": None,
             "type": None,
             "cell_id": None
@@ -23,22 +23,22 @@ class GameState:
 
 
 # ------------------ LIST POSSIBLE MOVES ------------------
-
 def list_possible_moves(state: GameState, player: int, is_first_move=None):
     if is_first_move is None:
         is_first_move = not any(p.player == player and p.cell is not None for p in state.pieces)
 
     moves = []
 
-    # Placement moves
+    # Placement moves: if there are pieces left in the stack
     if state.stack.stack[player] > 0:
         for cell in state.cells:
             if cell.piece is None:
+                # Do not allow placement on corner cells on the first move
                 if is_first_move and cell.id in [0, SIZE - 1, SIZE * SIZE - SIZE, SIZE * SIZE - 1]:
-                    continue  # Cannot place on corners on first move
+                    continue
                 moves.append(("placement", cell))
 
-    # Movement moves
+    # Movement moves: for each piece of the player on the board
     for piece in state.pieces:
         if piece.player == player and piece.cell is not None:
             destinations = get_valid_moves(piece)
@@ -49,21 +49,21 @@ def list_possible_moves(state: GameState, player: int, is_first_move=None):
 
 
 # ------------------ GET VALID MOVES ------------------
-
 def get_valid_moves(piece: Piece):
     moves = []
     for direction in DIRECTIONS:
         moves.extend(validate_direction(piece.cell, piece, False, direction))
     return moves
 
-
 def validate_direction(current_cell, piece: Piece, color_switched, direction):
     moves = []
     next_cell = current_cell.neighbors.get(direction)
-
+    
+    # Stop if there is no neighbor or it is occupied
     if next_cell is None or next_cell.piece is not None:
         return moves
 
+    # Determine if the next cell is of the "correct" color based on the player's color
     correct_color = (piece.player == 0 and next_cell.type == BLUE) or (piece.player == 1 and next_cell.type == WHITE)
 
     if current_cell.type == next_cell.type:
@@ -79,7 +79,6 @@ def validate_direction(current_cell, piece: Piece, color_switched, direction):
 
 
 # ------------------ APPLY MOVE ------------------
-
 def apply_move(state: GameState, move, player: int):
     new_state = state.clone()
 
@@ -107,7 +106,6 @@ def apply_move(state: GameState, move, player: int):
 
 
 # ------------------ HEURISTIC EVALUATION ------------------
-
 def count_in_line(cell, player, dir1, dir2):
     count = 1
     next_cell = cell.neighbors.get(dir1)
@@ -152,7 +150,6 @@ def evaluate_state(state: GameState, player: int):
 
 
 # ------------------ CHECK IF GAME OVER ------------------
-
 def is_terminal_state(state: GameState, player: int):
     action = state.last_action
     if action["player"] is None:
@@ -177,8 +174,7 @@ def is_terminal_state(state: GameState, player: int):
     return False, evaluate_state(state, player)
 
 
-# ------------------ MINIMAX WITH ALPHA-BETA ------------------
-
+# ------------------ MINIMAX WITH ALPHA-BETA PRUNING ------------------
 def minimax(state: GameState, depth: int, alpha: float, beta: float, maximizing: bool, player: int):
     terminal, score = is_terminal_state(state, player)
     if depth == 0 or terminal:
@@ -207,18 +203,17 @@ def minimax(state: GameState, depth: int, alpha: float, beta: float, maximizing:
         return min_eval
 
 
-# ------------------ FIND BEST MOVE ------------------
-
+# ------------------ FIND BEST MOVE USING MINIMAX ------------------
 def best_move(state: GameState, player: int, depth: int):
     first_turn = not any(p.player == player and p.cell is not None for p in state.pieces)
     winning = []
 
+    # Check for immediate winning moves
     for move in list_possible_moves(state, player, first_turn):
         new_state = apply_move(state, move, player)
         is_term, score = is_terminal_state(new_state, player)
         if is_term and score > 0:
             winning.append(move)
-
     if winning:
         return random.choice(winning)
 
@@ -237,68 +232,100 @@ def best_move(state: GameState, player: int, depth: int):
     return random.choice(best_moves) if best_moves else None
 
 
-
-# Classe que representa um nó na árvore do MCTS
+# ------------------ MCTS NODE CLASS ------------------
 class MCTSNode:
     def __init__(self, state, parent, move, player_just_moved, next_player):
-        self.state = state                      # Estado do jogo neste nó (GameState)
-        self.parent = parent                    # Nó pai
-        self.move = move                        # Movimento que levou a este nó (None para a raiz)
-        self.player_just_moved = player_just_moved  # Jogador que realizou o movimento (0 ou 1). Na raiz, pode ser None.
-        self.next_player = next_player          # Jogador que deverá jogar a partir deste estado
-        self.wins = 0                           # Número de vitórias acumuladas (do ponto de vista do jogador raiz)
-        self.visits = 0                         # Número de vezes que o nó foi visitado
-        # Movimentos não testados a partir deste estado para o jogador next_player
-        self.untried_moves = list_possible_moves(state, next_player)
-        self.children = []                      # Lista de nós filhos
+        self.state = state              # Game state at this node
+        self.parent = parent            # Parent node
+        self.move = move                # Move that led to this node (None for root)
+        self.player_just_moved = player_just_moved  # Player who made the move
+        self.next_player = next_player  # Player whose turn is next
+        self.wins = 0                 # Number of wins (from the perspective of the root player)
+        self.visits = 0               # Number of visits to this node
+        self.untried_moves = list_possible_moves(state, next_player) # List of moves not yet explored from this state for next_player
+        self.children = []            # List of child nodes
 
-    # Seleciona recursivamente o filho com maior valor UCT
+    # Select child with highest UCT value
     def uct_select_child(self, exploration=math.sqrt(2)):
         return max(
             self.children,
             key=lambda child: child.wins / child.visits + exploration * math.sqrt(math.log(self.visits) / child.visits)
         )
 
-    # Expande o nó com um dos movimentos não testados
+    # Expand node by trying one of the untried moves
     def add_child(self, move, state):
         child = MCTSNode(state, parent=self, move=move, player_just_moved=self.next_player, next_player=1 - self.next_player)
         self.untried_moves.remove(move)
         self.children.append(child)
         return child
 
-    # Atualiza as estatísticas deste nó com o resultado da simulação
+    # Update node's statistics with simulation result
     def update(self, simulation_winner):
         self.visits += 1
-        # Se o jogador que realizou o movimento para este nó for o vencedor na simulação,
-        # contabiliza uma vitória (caso contrário, não soma pontos)
         if self.player_just_moved is not None and self.player_just_moved == simulation_winner:
             self.wins += 1
 
 
-# Função de rollout (simulação aleatória) a partir de um estado
-# current_turn é o jogador a jogar naquele estado; root_player é o jogador que iniciou a busca
-def rollout(state, current_turn, root_player, max_rollout_steps=100):
+# ------------------ ENHANCED ROLLOUT (SIMULATION) FUNCTION ------------------
+def rollout(state, current_turn, root_player, max_rollout_steps=100, epsilon=0.3):
     state_sim = copy.deepcopy(state)
     turn = current_turn
     for _ in range(max_rollout_steps):
-        terminal, score = is_terminal_state(state_sim, root_player)
-        if terminal:
-            # Se o score for positivo, considera-se que o root_player venceu; caso contrário, o oponente venceu
-            return root_player if score > 0 else 1 - root_player
         moves = list_possible_moves(state_sim, turn)
         if not moves:
             break
-        move = random.choice(moves)
-        state_sim = apply_move(state_sim, move, turn)
+
+        # Check for immediate win moves for the current player
+        immediate_win_moves = []
+        for move in moves:
+            next_state = apply_move(state_sim, move, turn)
+            is_term, score = is_terminal_state(next_state, root_player)
+            # If current player's move leads to immediate win for root or prevents opponent win
+            if is_term and ((turn == root_player and score > 0) or (turn != root_player and score < 0)):
+                immediate_win_moves.append(move)
+        if immediate_win_moves:
+            chosen_move = random.choice(immediate_win_moves)
+        else:
+            # Epsilon-greedy: with probability epsilon choose random, else choose best move by evaluation
+            if random.random() < epsilon:
+                chosen_move = random.choice(moves)
+            else:
+                best_eval = -float('inf')
+                best_moves = []
+                for move in moves:
+                    next_state = apply_move(state_sim, move, turn)
+                    eval_score = evaluate_state(next_state, root_player)
+                    if eval_score > best_eval:
+                        best_eval = eval_score
+                        best_moves = [move]
+                    elif eval_score == best_eval:
+                        best_moves.append(move)
+                chosen_move = random.choice(best_moves) if best_moves else random.choice(moves)
+        
+        state_sim = apply_move(state_sim, chosen_move, turn)
         turn = 1 - turn
-    # Se não atingiu um estado terminal, usa a avaliação heurística para determinar o resultado
+        terminal, _ = is_terminal_state(state_sim, root_player)
+        if terminal:
+            break
+
     final_score = evaluate_state(state_sim, root_player)
     return root_player if final_score > 0 else 1 - root_player
 
 
-# Função principal que, dado um estado e um jogador, executa MCTS por um número fixo de iterações e retorna o melhor movimento
+# ------------------ FIND BEST MOVE USING MCTS ------------------
 def best_move_mcts(state: GameState, player: int, iterations: int):
-    # Cria o nó raiz; para a raiz, nenhum movimento foi feito ainda, então player_just_moved é None
+    # Check for any immediate winning move
+    possible_moves = list_possible_moves(state, player)
+    immediate_wins = []
+    for move in possible_moves:
+        new_state = apply_move(state, move, player)
+        is_term, score = is_terminal_state(new_state, player)
+        if is_term and score > 0:
+            immediate_wins.append(move)
+    if immediate_wins:
+        return random.choice(immediate_wins)
+
+    # Create the root node for MCTS
     root = MCTSNode(state, parent=None, move=None, player_just_moved=None, next_player=player)
 
     for _ in range(iterations):
@@ -306,27 +333,27 @@ def best_move_mcts(state: GameState, player: int, iterations: int):
         state_sim = copy.deepcopy(state)
         current_turn = player
 
-        # 1. Seleção: desce pela árvore utilizando UCT até encontrar um nó com movimentos não testados ou nó terminal
+        # 1. Selection: traverse the tree using UCT until a node with untried moves is found
         while node.untried_moves == [] and node.children:
             node = node.uct_select_child()
             state_sim = apply_move(state_sim, node.move, current_turn)
             current_turn = 1 - current_turn
 
-        # 2. Expansão: se houver movimentos não testados, seleciona um e cria um novo nó
+        # 2. Expansion: expand one untried move
         if node.untried_moves:
             move = random.choice(node.untried_moves)
             state_sim = apply_move(state_sim, move, current_turn)
             node = node.add_child(move, state_sim)
             current_turn = 1 - current_turn
 
-        # 3. Simulação (Rollout): realiza uma simulação aleatória a partir do estado atual
+        # 3. Simulation (Rollout) using the enhanced policy
         simulation_winner = rollout(state_sim, current_turn, player)
 
-        # 4. Backpropagação: atualiza as estatísticas de todos os nós no caminho até a raiz
+        # 4. Backpropagation: update nodes along the path
         while node is not None:
             node.update(simulation_winner)
             node = node.parent
 
-    # Seleciona o movimento do filho da raiz que foi mais visitado (pode-se também usar a taxa de vitórias)
+    # Choose the child with the highest visit count
     best_child = max(root.children, key=lambda child: child.visits)
     return best_child.move

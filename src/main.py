@@ -74,7 +74,7 @@ def game_loop():
             current_state = alg.GameState(graph, stack.pieces, stack)
             
             if algorithm_name == "MonteCarlo":
-                iterations_map = {"Easy": 100, "Medium": 500, "Hard": 1000}
+                iterations_map = {"Easy": 25, "Medium": 50, "Hard": 100}
                 difficulty_str = "Easy Medium Hard".split()[difficulty - 1]
                 iterations = iterations_map[difficulty_str]
                 move = alg.best_move_mcts(current_state, turn, iterations)
