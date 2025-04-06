@@ -1,0 +1,32 @@
+import time
+
+class GameLogger:
+    def __init__(self, game_mode, bot_configs, board_size):
+        self.start_time = time.time()
+        self.moves = []
+        self.game_mode = game_mode
+        self.bot_configs = bot_configs
+        self.board_size = str(board_size)
+        self.winner = None
+
+    def log_move(self, player, move_type, cell_id, from_id=None):
+        if move_type == "placement":
+            self.moves.append(f"Player {player + 1} placed at cell {cell_id}")
+        elif move_type == "move":
+            self.moves.append(f"Player {player + 1} moved from cell {from_id} to {cell_id}")
+
+    def set_winner(self, winner):
+        self.winner = winner
+
+    def save_to_file(self, filename="game_log.txt"):
+        total_time = round(time.time() - self.start_time, 2)
+        with open(filename, "w") as file:
+            file.write(f"Game Mode: {self.game_mode}\n")
+            if self.bot_configs:
+                file.write(f"Bot Configs: {self.bot_configs}\n")
+            file.write(f"Board Size: {self.board_size}\n")
+            file.write(f"Winner: Player {self.winner + 1}\n")
+            file.write(f"Total Time: {total_time} seconds\n")
+            file.write("Moves:\n")
+            for i, move in enumerate(self.moves):
+                file.write(f"{i + 1}. {move}\n")

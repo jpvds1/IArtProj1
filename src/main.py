@@ -4,20 +4,20 @@ from pieces import *
 from handlers import *
 from menu import *
 import algorithm as alg
+from logger import GameLogger
 
 
 # Initialize Pygame
 pygame.init()
 
 def game_loop():
-    print(1)
     start_game = main_menu()
-    print(2)
+    
     # Quit game
     if not start_game:
         pygame.quit()
         quit()
-    print(3)
+
     # Determine game mode and bot configs
     if start_game[0] == "human_vs_computer":
         bot_configs = [start_game[1]]
@@ -27,6 +27,8 @@ def game_loop():
         bot_configs = []
 
     game_mode = start_game[0]
+    logger = GameLogger(game_mode, bot_configs, get_size())
+    
     running = True
     turn = 0
     winner = None
@@ -35,14 +37,12 @@ def game_loop():
     reset_handlers(graph)
     stack.__init__()
 
-    # Development: add initial test pieces
-    stack.init_pieces()
-
     while running:
         screen.fill(BG_COLOR)
         draw_graph()
         stack.draw_stack_and_pieces(screen, turn)
         
+        # Show current turn
         font = pygame.font.Font(None, 36)
         turn_text = f"Player {turn + 1}'s Turn"
         turn_surface = font.render(turn_text, True, (0, 0, 0))
@@ -58,10 +58,16 @@ def game_loop():
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = pygame.mouse.get_pos()
                     result = handle_click(x, y, turn)
+                    
                     if isinstance(result, tuple):
-                        turn, move_cell = result
+                        new_turn, move_cell, move_type, from_id = result
+                        logger.log_move(turn, move_type, move_cell.id, from_id)
+                        turn = new_turn
+                        
                         if turn >= 2:
                             winner = turn - 2
+                            logger.set_winner(winner)
+                            logger.save_to_file()
                             choice = show_final_state(winner, move_cell, turn, stack)
                             if choice == "restart":
                                 return True
@@ -85,6 +91,8 @@ def game_loop():
                 selected_cell = next(c for c in graph if c.id == move[1].id)
                 stack.place_piece(selected_cell, turn)
                 move_cell = selected_cell
+                logger.log_move(turn, "placement", selected_cell.id)
+                
             elif move[0] == "move":
                 origin = next(c for c in graph if c.id == move[1].id)
                 destination = next(c for c in graph if c.id == move[2].id)
@@ -92,9 +100,12 @@ def game_loop():
                     origin.piece.move_to(destination)
                     check_flip(destination)
                     move_cell = destination
+                    logger.log_move(turn, "move", destination.id, origin.id)
 
                 if check_conditions(move_cell):
                     winner = turn
+                    logger.set_winner(winner)
+                    logger.save_to_file()
                     pygame.display.flip()
                     pygame.time.wait(2000)
                     choice = show_final_state(winner, move_cell, turn, stack)

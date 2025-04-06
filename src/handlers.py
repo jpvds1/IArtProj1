@@ -166,45 +166,46 @@ def get_selected(x, y):
 # Handle what happens when a click occurs
 def handle_click(x, y, turn):
     global PENDING_PIECE, STATE, VALID_MOVES, FIRST_MOVE, WINNER
-    
+
     selected = get_selected(x, y)
-    
+
     if selected is None:
-        print("Nothing")
-    
+        return turn
+
     elif selected == 0:
         if turn == 0 and STATE == States.DEFAULT:
             setup_place()
-        
+
     elif selected == 1:
         if turn == 1 and STATE == States.DEFAULT:
             setup_place()
-        
+
     else:
         piece = selected.piece
-        if piece != None and STATE == States.DEFAULT and piece.player == turn:
+        if piece is not None and STATE == States.DEFAULT and piece.player == turn:
             setup_move(piece)
             valid_moves(piece)
-        elif piece == None and STATE == States.PENDING_MOVE:
+        elif piece is None and STATE == States.PENDING_MOVE:
             if selected in VALID_MOVES:
+                from_id = PENDING_PIECE.cell.id
                 make_move(selected)
                 check_flip(selected)
                 move_cell = selected
                 if check_conditions(selected):
-                    return (WINNER + 2, move_cell)
+                    return (WINNER + 2, move_cell, "move", from_id)
                 else:
-                    return (1 - turn, move_cell)
+                    return (1 - turn, move_cell, "move", from_id)
             else:
                 print("invalid move")
-        elif piece == None and STATE == States.PENDING_PLACE:
+        elif piece is None and STATE == States.PENDING_PLACE:
             is_corner = selected.id == 0 or selected.id == SIZE - 1 or selected.id == SIZE * SIZE - SIZE or selected.id == SIZE * SIZE - 1
             if not (FIRST_MOVE and is_corner):
                 FIRST_MOVE = False
                 stack.place_piece(selected, turn)
                 stack.highlighted = False
                 STATE = States.DEFAULT
-                turn = 1 - turn
-        
+                return (1 - turn, selected, "placement", None)
+
     return turn
 
 

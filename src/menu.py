@@ -194,7 +194,7 @@ def board_size():
             
         if draw_button("Decrease", WIDTH // 2 - 150, 470, 300, 50):
             decrease_size()
-            if SIZE > 3:
+            if SIZE > 5:
                 SIZE -= 2
             
         pygame.display.flip()

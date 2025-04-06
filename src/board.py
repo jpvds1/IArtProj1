@@ -139,5 +139,9 @@ def increase_size():
     
 def decrease_size():
     global SIZE
-    if SIZE > 3:
+    if SIZE > 5:
         SIZE -= 2
+        
+def get_size():
+    global SIZE
+    return SIZE
