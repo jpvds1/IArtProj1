@@ -42,6 +42,11 @@ def game_loop():
         screen.fill(BG_COLOR)
         draw_graph()
         stack.draw_stack_and_pieces(screen, turn)
+        
+        font = pygame.font.Font(None, 36)
+        turn_text = f"Player {turn + 1}'s Turn"
+        turn_surface = font.render(turn_text, True, (0, 0, 0))
+        screen.blit(turn_surface, (WIDTH // 2 - turn_surface.get_width() // 2, 20))
 
         # Human Player
         if game_mode == "human_vs_human" or (game_mode == "human_vs_computer" and turn == 0):
