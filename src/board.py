@@ -24,6 +24,7 @@ class Cell:
         self.piece = None  # None means empty cell
         self.pos = None
         self.highlighted = False
+        self.hint = False
         self.neighbors : Cell = {dir: None for dir in DIRECTIONS} # None means no neighbor
 
     def set_neighbor(self, direction, node):
@@ -94,7 +95,7 @@ def create_graph():
 
 
 # Draws an hexagon
-def draw_hexagon(x, y, type, HEX_RADIUS, highlighted):
+def draw_hexagon(x, y, type, HEX_RADIUS, highlighted, hint=False):
     points = []
     for i in range(6):
         angle = math.pi / 3 * i
@@ -104,7 +105,10 @@ def draw_hexagon(x, y, type, HEX_RADIUS, highlighted):
     
     # Draw an hexagon with a black outline
     pygame.draw.polygon(screen, COLORS[type], points, 0)
-    if highlighted:
+    # If a hint is active, draw a red border; else if highlighted, draw cyan; else black
+    if hint:
+        pygame.draw.polygon(screen, (255, 0, 0), points, 3)
+    elif highlighted:
         pygame.draw.polygon(screen, (0, 255, 255), points, 2)
     else:
         pygame.draw.polygon(screen, (0, 0, 0), points, 2)
@@ -123,13 +127,17 @@ def draw_graph():
     for cell in graph:
         if cell.highlighted == False:
             x, y = cell.pos
-            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
+            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted, cell.hint)
             
     for cell in graph:
         if cell.highlighted == True:
             x, y = cell.pos
-            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted)
-            
+            draw_hexagon(x, y, cell.type, HEX_RADIUS, cell.highlighted, cell.hint)
+
+
+def clear_hints():
+    for cell in graph:
+        cell.hint = False
 
 
 def increase_size():

@@ -55,13 +55,44 @@ def game_loop():
         if game_mode == "human_vs_human" or (game_mode == "human_vs_computer" and turn == 0):
             if human_start_time is None:
                 human_start_time = time.time()
+            if winner is None:
+                hint_message = "Press 'M' for a hint using Minimax or 'C' for a hint using Monte Carlo"
+                hint_font = pygame.font.Font(None, 28)
+                hint_surface = hint_font.render(hint_message, True, (0, 0, 0))
+                screen.blit(hint_surface, (WIDTH // 2 - hint_surface.get_width() // 2, HEIGHT - 50))
+
                 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
+                    current_state = alg.GameState(graph, stack.pieces, stack)
+                    depth = 3
+                    hint_move = alg.best_move(current_state, turn, depth)
+                    if hint_move[0] == "placement":
+                        hint_cell = next(c for c in graph if c.id == hint_move[1].id)
+                        hint_cell.hint = True
+                    elif hint_move[0] == "move":
+                        origin_cell = next(c for c in graph if c.id == hint_move[1].id)
+                        destination_cell = next(c for c in graph if c.id == hint_move[2].id)
+                        origin_cell.hint = True
+                        destination_cell.hint = True
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_c:
+                    current_state = alg.GameState(graph, stack.pieces, stack)
+                    iterations = 50
+                    hint_move = alg.best_move_mcts(current_state, turn, iterations) 
+                    if hint_move[0] == "placement":
+                        hint_cell = next(c for c in graph if c.id == hint_move[1].id)
+                        hint_cell.hint = True
+                    elif hint_move[0] == "move":
+                        origin_cell = next(c for c in graph if c.id == hint_move[1].id)
+                        destination_cell = next(c for c in graph if c.id == hint_move[2].id)
+                        origin_cell.hint = True
+                        destination_cell.hint = True
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    clear_hints()
                     x, y = pygame.mouse.get_pos()
                     result = handle_click(x, y, turn)
                     

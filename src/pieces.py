@@ -27,7 +27,9 @@ class Piece:
         if self.cell:
             x, y = self.cell.pos  # Get the cell's pixel position
             pygame.draw.circle(screen, COLORS[self.player], (x, y), HEX_RADIUS * 2 // 3)  # Draw piece
-            if self.highlighted:
+            if self.cell.hint:
+                pygame.draw.circle(screen, (255, 255, 255), (x, y), HEX_RADIUS * 2 // 3, 3)
+            elif self.highlighted:
                 pygame.draw.circle(screen, (255, 255, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw highlighted outline
             else:
                 pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw outline
