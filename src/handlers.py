@@ -43,6 +43,8 @@ def check_row(dir1, dir2, cell: Cell):
 # 2 : loss
 def check_conditions(cell: Cell):
     global WINNER
+    if cell is None or cell.piece is None:
+        return False
     cells_in_a_row = 1
     
     cells_in_a_row = max(cells_in_a_row, check_row("UP", "DOWN", cell))
@@ -187,10 +189,11 @@ def handle_click(x, y, turn):
             if selected in VALID_MOVES:
                 make_move(selected)
                 check_flip(selected)
+                move_cell = selected
                 if check_conditions(selected):
-                    turn = WINNER + 2
+                    return (WINNER + 2, move_cell)
                 else:
-                    turn = 1 - turn
+                    return (1 - turn, move_cell)
             else:
                 print("invalid move")
         elif piece == None and STATE == States.PENDING_PLACE:

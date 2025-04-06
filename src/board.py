@@ -8,7 +8,7 @@ SIZE = 5 # Size of the board
 HEX_RADIUS = (WIDTH - 200) // (SIZE + (SIZE - 1 // 2)) / 2
 BG_COLOR = (255, 255, 255) # Background Color
 NEUTRAL, WHITE, BLUE = 0, 1, 2 # Types of cells
-COLORS = [(255, 255, 255), (255, 255, 255), (173, 216, 230)] # Colors of the cells
+COLORS = [(255, 165, 0), (255, 255, 255), (173, 216, 230)] # Colors of the cells
 DIRECTIONS = ["UP", "UP_RIGHT", "DOWN_RIGHT", "DOWN", "DOWN_LEFT", "UP_LEFT"] # Possible directions of movement
 
 # Screen with title

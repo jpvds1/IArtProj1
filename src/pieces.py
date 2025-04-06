@@ -12,13 +12,15 @@ class Piece:
         self.original_cell = None
 
     def move_to(self, new_cell):
-        if new_cell.piece is None:  # Check if the cell is empty
-            self.original_cell = self.cell
-            self.cell.piece = None  # Remove from the current cell
-            new_cell.piece = self  # Place in the new cell
-            self.cell = new_cell  # Update the piece's position
-        else:
+        if new_cell.piece is not None:
             print("Invalid move! Cell is already occupied.")
+            return False
+
+        self.original_cell = self.cell
+        self.cell.piece = None  # Remove from the current cell
+        new_cell.piece = self  # Place in the new cell
+        self.cell = new_cell  # Update the piece's position
+        return True
 
     # Draw a piece (highlighted when selected to be moved)
     def draw(self, screen):
@@ -29,7 +31,6 @@ class Piece:
                 pygame.draw.circle(screen, (255, 255, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw highlighted outline
             else:
                 pygame.draw.circle(screen, (0, 0, 0), (x, y), HEX_RADIUS * 2 // 3, 3)  # Draw outline
-            
             return True
         return False
                 
@@ -43,6 +44,8 @@ class Piece:
     def flip(self):
         self.player = abs(self.player - 1)
 
+
+# Stack class to manage available pieces per player
 class Stack:
     def __init__(self):
         self.stack = [6, 6]
