@@ -50,7 +50,7 @@ def bot_config_menu(player_name):
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 100))
 
         if draw_button(f"Algorithm: {selected_algorithm}", WIDTH // 2 - 150, 180, 300, 50):
-            selected_algorithm = "AlphaBeta" if selected_algorithm == "Minimax" else "Minimax"
+            selected_algorithm = "MonteCarlo" if selected_algorithm == "Minimax" else "Minimax"
 
         if draw_button(f"Difficulty: {levels[selected_level]}", WIDTH // 2 - 150, 250, 300, 50):
             selected_level = (selected_level + 1) % len(levels)
@@ -84,7 +84,7 @@ def cc_config_menu():
         screen.blit(comp1_text, (WIDTH // 4 - comp1_text.get_width() // 2, 120))
 
         if draw_button(f"Algorithm: {selected_algorithm1}", WIDTH // 4 - 150, 170, 300, 50):
-            selected_algorithm1 = "AlphaBeta" if selected_algorithm1 == "Minimax" else "Minimax"
+            selected_algorithm1 = "MonteCarlo" if selected_algorithm1 == "Minimax" else "Minimax"
 
         if draw_button(f"Difficulty: {levels[selected_level1]}", WIDTH // 4 - 150, 240, 300, 50):
             selected_level1 = (selected_level1 + 1) % len(levels)
@@ -93,7 +93,7 @@ def cc_config_menu():
         screen.blit(comp2_text, (3 * WIDTH // 4 - comp2_text.get_width() // 2, 120))
 
         if draw_button(f"Algorithm: {selected_algorithm2}", 3 * WIDTH // 4 - 150, 170, 300, 50):
-            selected_algorithm2 = "AlphaBeta" if selected_algorithm2 == "Minimax" else "Minimax"
+            selected_algorithm2 = "MonteCarlo" if selected_algorithm2 == "Minimax" else "Minimax"
 
         if draw_button(f"Difficulty: {levels[selected_level2]}", 3 * WIDTH // 4 - 150, 240, 300, 50):
             selected_level2 = (selected_level2 + 1) % len(levels)

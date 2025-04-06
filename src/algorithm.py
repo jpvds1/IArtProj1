@@ -1,5 +1,6 @@
 import copy
 import random
+import math
 from board import graph, SIZE, NEUTRAL, WHITE, BLUE, DIRECTIONS
 from pieces import stack, Piece
 from handlers import check_flip
@@ -234,3 +235,98 @@ def best_move(state: GameState, player: int, depth: int):
             best_moves.append(move)
 
     return random.choice(best_moves) if best_moves else None
+
+
+
+# Classe que representa um nó na árvore do MCTS
+class MCTSNode:
+    def __init__(self, state, parent, move, player_just_moved, next_player):
+        self.state = state                      # Estado do jogo neste nó (GameState)
+        self.parent = parent                    # Nó pai
+        self.move = move                        # Movimento que levou a este nó (None para a raiz)
+        self.player_just_moved = player_just_moved  # Jogador que realizou o movimento (0 ou 1). Na raiz, pode ser None.
+        self.next_player = next_player          # Jogador que deverá jogar a partir deste estado
+        self.wins = 0                           # Número de vitórias acumuladas (do ponto de vista do jogador raiz)
+        self.visits = 0                         # Número de vezes que o nó foi visitado
+        # Movimentos não testados a partir deste estado para o jogador next_player
+        self.untried_moves = list_possible_moves(state, next_player)
+        self.children = []                      # Lista de nós filhos
+
+    # Seleciona recursivamente o filho com maior valor UCT
+    def uct_select_child(self, exploration=math.sqrt(2)):
+        return max(
+            self.children,
+            key=lambda child: child.wins / child.visits + exploration * math.sqrt(math.log(self.visits) / child.visits)
+        )
+
+    # Expande o nó com um dos movimentos não testados
+    def add_child(self, move, state):
+        child = MCTSNode(state, parent=self, move=move, player_just_moved=self.next_player, next_player=1 - self.next_player)
+        self.untried_moves.remove(move)
+        self.children.append(child)
+        return child
+
+    # Atualiza as estatísticas deste nó com o resultado da simulação
+    def update(self, simulation_winner):
+        self.visits += 1
+        # Se o jogador que realizou o movimento para este nó for o vencedor na simulação,
+        # contabiliza uma vitória (caso contrário, não soma pontos)
+        if self.player_just_moved is not None and self.player_just_moved == simulation_winner:
+            self.wins += 1
+
+
+# Função de rollout (simulação aleatória) a partir de um estado
+# current_turn é o jogador a jogar naquele estado; root_player é o jogador que iniciou a busca
+def rollout(state, current_turn, root_player, max_rollout_steps=100):
+    state_sim = copy.deepcopy(state)
+    turn = current_turn
+    for _ in range(max_rollout_steps):
+        terminal, score = is_terminal_state(state_sim, root_player)
+        if terminal:
+            # Se o score for positivo, considera-se que o root_player venceu; caso contrário, o oponente venceu
+            return root_player if score > 0 else 1 - root_player
+        moves = list_possible_moves(state_sim, turn)
+        if not moves:
+            break
+        move = random.choice(moves)
+        state_sim = apply_move(state_sim, move, turn)
+        turn = 1 - turn
+    # Se não atingiu um estado terminal, usa a avaliação heurística para determinar o resultado
+    final_score = evaluate_state(state_sim, root_player)
+    return root_player if final_score > 0 else 1 - root_player
+
+
+# Função principal que, dado um estado e um jogador, executa MCTS por um número fixo de iterações e retorna o melhor movimento
+def best_move_mcts(state: GameState, player: int, iterations: int):
+    # Cria o nó raiz; para a raiz, nenhum movimento foi feito ainda, então player_just_moved é None
+    root = MCTSNode(state, parent=None, move=None, player_just_moved=None, next_player=player)
+
+    for _ in range(iterations):
+        node = root
+        state_sim = copy.deepcopy(state)
+        current_turn = player
+
+        # 1. Seleção: desce pela árvore utilizando UCT até encontrar um nó com movimentos não testados ou nó terminal
+        while node.untried_moves == [] and node.children:
+            node = node.uct_select_child()
+            state_sim = apply_move(state_sim, node.move, current_turn)
+            current_turn = 1 - current_turn
+
+        # 2. Expansão: se houver movimentos não testados, seleciona um e cria um novo nó
+        if node.untried_moves:
+            move = random.choice(node.untried_moves)
+            state_sim = apply_move(state_sim, move, current_turn)
+            node = node.add_child(move, state_sim)
+            current_turn = 1 - current_turn
+
+        # 3. Simulação (Rollout): realiza uma simulação aleatória a partir do estado atual
+        simulation_winner = rollout(state_sim, current_turn, player)
+
+        # 4. Backpropagação: atualiza as estatísticas de todos os nós no caminho até a raiz
+        while node is not None:
+            node.update(simulation_winner)
+            node = node.parent
+
+    # Seleciona o movimento do filho da raiz que foi mais visitado (pode-se também usar a taxa de vitórias)
+    best_child = max(root.children, key=lambda child: child.visits)
+    return best_child.move
