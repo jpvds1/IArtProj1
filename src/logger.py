@@ -9,11 +9,15 @@ class GameLogger:
         self.board_size = str(board_size)
         self.winner = None
 
-    def log_move(self, player, move_type, cell_id, from_id=None):
+    def log_move(self, time, player, move_type, cell_id, from_id=None):
+        time = round(time, 2)
+        
         if move_type == "placement":
-            self.moves.append(f"Player {player + 1} placed at cell {cell_id}")
+            self.moves.append(f"Player {player + 1} placed at cell {cell_id}, took {time} seconds")
         elif move_type == "move":
-            self.moves.append(f"Player {player + 1} moved from cell {from_id} to {cell_id}")
+            self.moves.append(f"Player {player + 1} moved from cell {from_id} to {cell_id}, took {time} seconds")
+
+
 
     def set_winner(self, winner):
         self.winner = winner

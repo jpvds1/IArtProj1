@@ -1,4 +1,5 @@
 import pygame
+import time
 from board import *
 from pieces import *
 from handlers import *
@@ -36,6 +37,7 @@ def game_loop():
     graph = create_graph()
     reset_handlers(graph)
     stack.__init__()
+    human_start_time = None
 
     while running:
         screen.fill(BG_COLOR)
@@ -47,9 +49,13 @@ def game_loop():
         turn_text = f"Player {turn + 1}'s Turn"
         turn_surface = font.render(turn_text, True, (0, 0, 0))
         screen.blit(turn_surface, (WIDTH // 2 - turn_surface.get_width() // 2, 20))
-
+        
+        
         # Human Player
         if game_mode == "human_vs_human" or (game_mode == "human_vs_computer" and turn == 0):
+            if human_start_time is None:
+                human_start_time = time.time()
+                
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -61,8 +67,10 @@ def game_loop():
                     
                     if isinstance(result, tuple):
                         new_turn, move_cell, move_type, from_id = result
-                        logger.log_move(turn, move_type, move_cell.id, from_id)
+                        move_time = time.time() - human_start_time
+                        logger.log_move(move_time, turn, move_type, move_cell.id, from_id)
                         turn = new_turn
+                        human_start_time = None
                         
                         if turn >= 2:
                             winner = turn - 2
@@ -82,16 +90,17 @@ def game_loop():
             depth = {"Easy": 1, "Medium": 2, "Hard": 3}["Easy Medium Hard".split()[difficulty - 1]]
 
             pygame.display.flip()
-            pygame.time.wait(1000)
 
             current_state = alg.GameState(graph, stack.pieces, stack)
+            start_time = time.time()
             move = alg.best_move(current_state, turn, depth)
+            move_time = time.time() - start_time
 
             if move[0] == "placement":
                 selected_cell = next(c for c in graph if c.id == move[1].id)
                 stack.place_piece(selected_cell, turn)
                 move_cell = selected_cell
-                logger.log_move(turn, "placement", selected_cell.id)
+                logger.log_move(move_time, turn, "placement", selected_cell.id)
                 
             elif move[0] == "move":
                 origin = next(c for c in graph if c.id == move[1].id)
@@ -100,7 +109,7 @@ def game_loop():
                     origin.piece.move_to(destination)
                     check_flip(destination)
                     move_cell = destination
-                    logger.log_move(turn, "move", destination.id, origin.id)
+                    logger.log_move(move_time, turn, "move", destination.id, origin.id)
 
                 if check_conditions(move_cell):
                     winner = turn
